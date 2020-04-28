@@ -1,17 +1,69 @@
 from app import app, dbc, dcc, html, Input, Output, State
 
-
-jumbotron = dbc.Jumbotron([
-	dbc.Container([
+card_content_1 = [
+    dbc.CardHeader("Instructions"),
+    dbc.CardBody([
 		html.Iframe(
 			id='instruction-video', 
 			src='https://www.youtube.com/embed/k3Zi5AYbYU4',
-			width=500,
-			height=350
-		)], 
-		fluid=True)], 
-	fluid=True
-)
+			width=600,
+			height=400
+		)
+	])
+]
+
+card_content_2 = [
+    dbc.CardHeader("Objectives"),
+    dbc.CardBody([
+		html.H5("Watch Out For", className="card-title"),
+		dbc.ListGroup(
+			[
+				dbc.ListGroupItem("Straight Arms"),
+				dbc.ListGroupItem("Straight Knees"),
+				dbc.ListGroupItem("Heels On Floor"),
+			],
+			flush=True,
+		)
+	])
+]
+
+card_content_3 = [
+    dbc.CardHeader("Performance"),
+    dbc.CardBody([
+		html.H5("Overall", className="card-title"),
+		dbc.Progress(value=76, color='light'),
+		html.Span([
+		    dbc.Button([
+		        "Grade", 
+		        dbc.Badge("B", pill=True, color="success", className="ml-1"),
+			]),
+		    dbc.Button([
+		        "Form", 
+		        dbc.Badge("C", pill=True, color="warning", className="ml-1"),
+			]),
+		    dbc.Button([
+		        "Severity", 
+		        dbc.Badge("D", pill=True, color="danger", className="ml-1"),
+			])
+		])
+	])
+]
+
+card_1 = dbc.Card(card_content_1, color="light", outline=True)
+card_2 = dbc.Card(card_content_2, color="light", outline=True)
+card_3 = dbc.Card(card_content_3, color="light", outline=True)
+
+cards = html.Div([
+    dbc.Row([
+        dbc.Col(card_1, width=8), 
+        dbc.Col([
+            card_2,
+            html.Br(),
+            card_3
+        ], width=4)
+    ])
+])
+
 
 typeform_iframe = html.Iframe(
 	id='give-feedback', 
@@ -37,9 +89,9 @@ modal = html.Div(
     ]
 )
 
-layout = html.Div([
-    jumbotron,
-    modal
+layout = dbc.Jumbotron([
+	cards, 
+	modal
 ])
 
 
