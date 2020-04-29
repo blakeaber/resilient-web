@@ -1,11 +1,12 @@
 from app import app, dbc, dcc, html, Input, Output, State
+from pages import data, utils
+
 
 card_content_1 = [
-    dbc.CardHeader("Instructions"),
+    dbc.CardHeader("Exercise"),
     dbc.CardBody([
 		html.Iframe(
-			id='instruction-video', 
-			src='https://www.youtube.com/embed/k3Zi5AYbYU4',
+			id='instruction-video',
 			width=600,
 			height=400
 		)
@@ -17,11 +18,7 @@ card_content_2 = [
     dbc.CardBody([
 		html.H5("Watch Out For", className="card-title"),
 		dbc.ListGroup(
-			[
-				dbc.ListGroupItem("Straight Arms"),
-				dbc.ListGroupItem("Straight Knees"),
-				dbc.ListGroupItem("Heels On Floor"),
-			],
+			id='watch-out-for',
 			flush=True,
 		)
 	])
@@ -31,7 +28,7 @@ card_content_3 = [
     dbc.CardHeader("Performance"),
     dbc.CardBody([
 		html.H5("Overall", className="card-title"),
-		dbc.Progress(value=76, color='light'),
+		dbc.Progress("76%", value=76, color='primary'),
 		html.Span([
 		    dbc.Button([
 		        "Grade", 
@@ -89,10 +86,49 @@ modal = html.Div(
     ]
 )
 
-layout = dbc.Jumbotron([
-	cards, 
-	modal
-])
+layout = dbc.Jumbotron(
+    [
+        dbc.Container(
+            [
+                html.H1("Help Us Improve", className="jumbotron-cards"),
+                html.P(
+                    "Please provide as much honest feedback as possible.",
+                    className="lead",
+                ),
+                html.P(
+                    "It's the only way we can be successful!",
+                    className="lead",
+                ),
+                modal,
+                html.Br(),
+                cards
+            ],
+            fluid=True,
+        )
+    ],
+    fluid=True,
+    className="text-center"
+)
+
+
+@app.callback(Output('instruction-video', 'src'),
+              [Input('url', 'href')],
+              [State('url', 'pathname')])
+def display_instructional_video(href, pathname):
+    if pathname.startswith('/movement'):
+        exercise = utils.parse_url_parameters(href, param='ex')
+        return data.EXERCISES[exercise]['video-link']
+
+
+@app.callback(Output('watch-out-for', 'children'),
+              [Input('url', 'href')],
+              [State('url', 'pathname')])
+def display_instructions(href, pathname):
+    if pathname.startswith('/movement'):
+        exercise = utils.parse_url_parameters(href, param='ex')
+        return [
+            dbc.ListGroupItem(item) for item in data.EXERCISES[exercise]['watch-out-for']
+        ]
 
 
 @app.callback(

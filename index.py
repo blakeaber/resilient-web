@@ -10,7 +10,7 @@ from app import (
     Output,
     State
 )
-from pages import demo, cover, exercises, movement
+from pages import cover, exercises, movement
 
 
 navbar = dbc.NavbarSimple(
@@ -19,6 +19,7 @@ navbar = dbc.NavbarSimple(
         dbc.NavLink("Movement", href="/movement"),
     ],
     brand="Resilient.ai",
+    brand_href="/",
     color="light",
     dark=False,
 )
