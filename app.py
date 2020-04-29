@@ -2,10 +2,9 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, MATCH, ALL
 
 import os
-import flask
 
 
 # external JavaScript files
@@ -17,10 +16,8 @@ external_scripts = [
 ]
 
 
-server = flask.Flask(__name__)
 app = dash.Dash(
     __name__,
-    server=server,
     external_scripts=external_scripts,
     external_stylesheets=[
         dbc.themes.LUX
@@ -30,5 +27,5 @@ app = dash.Dash(
       'content': 'width=device-width, initial-scale=1.0'
     }]
 )
-app.title = 'Resilient.ai Demo'
+app.title = 'Resilient.ai ALPHA'
 app.config.suppress_callback_exceptions = True

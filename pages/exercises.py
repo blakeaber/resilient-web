@@ -1,5 +1,5 @@
-from app import dbc, dcc, html
-from pages import data
+from app import app, dbc, dcc, html, Input, Output, State
+from pages import data, utils
 
 def create_card_from_data(input_data):
     return dbc.Card([
@@ -42,19 +42,36 @@ callout = dbc.Container([
 	),
 ], fluid=True)
 
-card_content_1 = create_card_from_data(data.EXERCISES['inch-worm'])
-card_content_2 = create_card_from_data(data.EXERCISES['couch-stretch'])
 
 layout = dbc.Jumbotron(
     [
         callout,
-        dbc.Container(dbc.Row([
-            dbc.Col(card_content_1, width=4),
-            dbc.Col(card_content_2, width=4),
-            dbc.Col("", width=4),
-        ])
-        )
+        dbc.Container(id='exercise-cards')
     ],
     fluid=True,
     className="text-center"
 )
+
+
+@app.callback(Output('exercise-cards', 'children'),
+              [Input('url', 'href')],
+              [State('url', 'pathname')])
+def display_instructions(href, pathname):
+    if pathname.startswith('/exercises'):
+        program = utils.parse_url_parameters(href, param='pg')
+        if program:
+            exercise_cards = [
+                create_card_from_data(data.EXERCISES[i]) 
+                for i in data.PROGRAMS[program]['exercises']
+            ]
+        else:
+            exercise_cards = [
+                create_card_from_data(data.EXERCISES[i]) 
+                for i in data.EXERCISES.keys()
+            ]
+        rows = utils.split_list_into_chunks(exercise_cards, chunk_size=3)
+        return [
+            dbc.Row([
+                dbc.Col(card, width=4) for card in row
+            ]) for row in rows
+        ]

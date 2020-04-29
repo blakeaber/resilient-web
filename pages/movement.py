@@ -117,7 +117,8 @@ layout = dbc.Jumbotron(
 def display_instructional_video(href, pathname):
     if pathname.startswith('/movement'):
         exercise = utils.parse_url_parameters(href, param='ex')
-        return data.EXERCISES[exercise]['video-link']
+        if exercise:
+	        return data.EXERCISES[exercise]['video-link']
 
 
 @app.callback(Output('watch-out-for', 'children'),
@@ -126,9 +127,10 @@ def display_instructional_video(href, pathname):
 def display_instructions(href, pathname):
     if pathname.startswith('/movement'):
         exercise = utils.parse_url_parameters(href, param='ex')
-        return [
-            dbc.ListGroupItem(item) for item in data.EXERCISES[exercise]['watch-out-for']
-        ]
+        if exercise:
+            return [
+                dbc.ListGroupItem(item) for item in data.EXERCISES[exercise]['watch-out-for']
+            ]
 
 
 @app.callback(
