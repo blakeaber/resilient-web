@@ -18,7 +18,7 @@ const videoWidth = 640;
 const videoHeight = 480;
 
 const defaultFrameRate = 20;
-const defaultFrameCacheSize = 1;
+const defaultFrameCacheSize = 10;
 
 const defaultInfoDivId = 'info';
 const defaultInputVideoId = 'user-video';
