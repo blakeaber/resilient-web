@@ -14,11 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
-const videoWidth = 150;
-const videoHeight = 100;
+const videoWidth = 640;
+const videoHeight = 480;
 
-const defaultFrameRate = 10;
-const defaultFrameCacheSize = 10;
+const defaultFrameRate = 20;
+const defaultFrameCacheSize = 1;
 
 const defaultInfoDivId = 'info';
 const defaultInputVideoId = 'user-video';
@@ -38,18 +38,7 @@ const defaultMobileNetInputResolution = 300;
  * Loads a the camera to be used in the demo
  *
  */
-function isAndroid() {
-  return /Android/i.test(navigator.userAgent);
-}
 
-function isiOS() {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-function isMobile() {
-  return isAndroid() || isiOS();
-}
- 
 async function setupCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error(
@@ -60,14 +49,9 @@ async function setupCamera() {
   video.width = videoWidth;
   video.height = videoHeight;
 
-  const mobile = isMobile();
   const stream = await navigator.mediaDevices.getUserMedia({
     'audio': false,
-    'video': {
-      facingMode: 'user',
-      width: mobile ? undefined : videoWidth,
-      height: mobile ? undefined : videoHeight
-    },
+    'video': true,
   });
   video.srcObject = stream;
 
@@ -146,8 +130,6 @@ async function bindPage() {
   let video;
   try {
     video = await loadVideo();
-    let placeholder = document.getElementById('placeholder-video');
-    placeholder.style.display = 'none';
   } catch (e) {
     let info = document.getElementById(defaultInfoDivId);
     info.textContent = 'this browser does not support video capture,' +
@@ -158,27 +140,6 @@ async function bindPage() {
 
   // log poses per frame
   detectPoseInFrame(video, net);
-
-/**
- * =============================================================================
- * Sends keypoint data in real-time to python API for analysis
- */ 
-//   fetch('http://localhost:5000/inchworm',
-//   {
-//     method: 'post',
-//     headers: {
-//       'Accept': 'application/json, text/plain',
-//       'Content-Type': 'application/json'
-//     },
-//     body: JSON.stringify(sessionStorage.getItem(defaultPoseStorageId))
-//   })
-//     .then((response) => {
-// 	  return response.json();
-//     })
-//     .then((data) => {
-// 	  console.log(data);
-//     });
-// 
 }
 
 navigator.getUserMedia = navigator.getUserMedia ||
