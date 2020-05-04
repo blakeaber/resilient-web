@@ -12,26 +12,16 @@
 
 <button id="btn-start-recording">Start Recording</button>
 <button id="btn-stop-recording" disabled>Stop Recording</button>
-<button id="cancel-button">Cancel Upload</button>
 
 <hr>
 <video controls autoplay playsinline id="my-preview"></video>
-<button id="upload-button">Upload to S3</button>
 <p id="percentage"></p>
-<div id="results"></div>
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.5.9/RecordRTC.js"></script>
 <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
 <script>
 var recorder; // globally accessible
 var video = document.getElementById('my-preview');
-
-var button = document.getElementById('upload-button');
-var results = document.getElementById('results');
-var percentage = document.getElementById('percentage');
-var cancelUpload = document.getElementById('cancel-button');
-
 
 var bucketName = 'resilient-ai';
 var bucket = new AWS.S3({
@@ -58,21 +48,24 @@ function captureCamera(callback) {
     });
 }
 
-function stopRecordingCallback() {
-    video.src = video.srcObject = null;
-    video.muted = false;
-    video.volume = 1;
-    video.src = URL.createObjectURL(recorder.getBlob());
-    
-    recorder.camera.stop();
-    recorder.destroy();
-    recorder = null;
+function uploadRecorder(callback) {
+    recorder.getDataURL(callback, recorder)
+}
+
+function base64EncodeUnicode(str) {
+    // First we escape the string using encodeURIComponent to get the UTF-8 encoding of the characters, 
+    // then we convert the percent encodings into raw bytes, and finally feed it to btoa() function.
+    utf8Bytes = encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+            return String.fromCharCode('0x' + p1);
+    });
+
+    return btoa(utf8Bytes);
 }
 
 function dataURLtoFile(dataurl, filename) {
 		var arr = dataurl.split(','), 
 			mime = arr[0].match(/:(.*?);/)[1],
-			bstr = atob(arr[1]), 
+			bstr = atob(base64EncodeUnicode(arr[1])), 
 			n = bstr.length, 
 			u8arr = new Uint8Array(n);
 		while(n--){
@@ -81,7 +74,42 @@ function dataURLtoFile(dataurl, filename) {
 		return new File([u8arr], filename, {type:mime});
 }
 
+function stopRecordingCallback() {
+    video.src = video.srcObject = null;
+    video.muted = false;
+    video.volume = 1;
+    video.src = URL.createObjectURL(recorder.getBlob());
 
+    uploadRecorder(function(result) {
+		console.log('starting packaging...')
+
+	    var random = Math.random( ); 
+		var url_file = dataURLtoFile(result, random +'.webm');
+	    var objKey = 'video/user/web/' + url_file.name;
+		var params = {
+			Key: objKey,
+			ContentType: url_file.type,
+			Body: url_file,
+			ACL: 'public-read'
+		};
+
+// 		WHERE IS THE FILE ENDING UP????
+		var request = bucket.putObject(params);
+		request.on('httpUploadProgress', function (progress) {
+			percentage.innerHTML = parseInt((progress.loaded * 100) / progress.total)+'%'; 
+			console.log("Uploaded :: " + parseInt((progress.loaded * 100) / progress.total)+'%');
+		   // console.log(progress.loaded + " of " + progress.total + " bytes");
+		}).send(function(err, data){
+			percentage.innerHTML = "File has been uploaded successfully.";
+		});
+		
+		console.log(url_file.type, url_file)
+    });
+    
+    recorder.camera.stop()
+    recorder.destroy();
+    recorder = null;
+}
 
 document.getElementById('btn-start-recording').onclick = function() {
     this.disabled = true;
