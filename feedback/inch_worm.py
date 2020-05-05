@@ -13,11 +13,17 @@ def lower_arm_down(input_df):
 	).max()
 	return int(result)
 
-def lower_leg_angle(input_df):
-	return input_df.apply(
+def lower_leg_angle_achieved(input_df):
+	left_leg = input_df.apply(
 		lambda row: logic.angle_between_joints(row, 'leftAnkle', 'leftKnee'), 
 		axis=1
 	).mean()
+	right_leg = input_df.apply(
+		lambda row: logic.angle_between_joints(row, 'leftAnkle', 'leftKnee'), 
+		axis=1
+	).mean()
+	legs_angle = np.mean([left_leg, right_leg])
+	return bool(int(50 <= legs_angle <= 70) or int(130 <= legs_angle <= 150))
 
 def arms_straight(input_df, acceptable_threshold=10):
 	pass

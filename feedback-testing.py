@@ -40,7 +40,8 @@ app.layout = html.Div([
 			html.Div([
 				daq.BooleanSwitch(id='lower-arm-angle', color="green", label="Arms Straight?"),
 				html.Hr(),
-				daq.LEDDisplay(id='lower-leg-angle', color="#FF5E5E", label="Leg Angle")
+				daq.BooleanSwitch(id='lower-leg-angle', color="green", label="Legs Moving?"),
+# 				daq.LEDDisplay(id='lower-leg-angle', color="#FF5E5E", label="Leg Angle")
 			], style={'float': 'left'}),
 			html.Div(USER_VIDEO, style={'float': 'left'}),
 			html.Div(id='metrics', style={'display': 'none'})
@@ -70,11 +71,12 @@ app.clientside_callback(
 def on_click(n_clicks, data):
 	if data:
 		converted = json.loads(data)
-		input_df = utils.transform_keypoint_payload(converted)
+		input_df = utils.get_df_from_payload(converted)
+		input_df = utils.transform_keypoint_payload(input_df)
 	
 		return json.dumps({
 			'lower-arm-angle': inch_worm.lower_arm_down(input_df),
-			'lower-leg-angle': inch_worm.lower_leg_angle(input_df)
+			'lower-leg-angle': inch_worm.lower_leg_angle_achieved(input_df)
 		})
 
 @app.callback(
@@ -86,7 +88,7 @@ def update_output(data):
 		return converted['lower-arm-angle']
 
 @app.callback(
-	dash.dependencies.Output('lower-leg-angle', 'value'),
+	dash.dependencies.Output('lower-leg-angle', 'on'),
 	[dash.dependencies.Input('metrics', 'children')])
 def update_output(data):
 	if data:

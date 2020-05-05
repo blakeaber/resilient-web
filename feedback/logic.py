@@ -3,16 +3,6 @@ import numpy as np
 from scipy import spatial
 from functools import partial
 
-
-# def is_same_body_position(input_df, target_df, loss_threshold=0.2):
-#     """Checks whether candidate body position matches target
-#     body position (using Procrustes linear transformation)
-#     """
-#     (normalized_gold_standard, normalized_input, loss) = spatial.procrustes(
-#         target_df, 
-#         input_df
-#     )
-#     return loss <= loss_threshold
     
 def angle_between_joints(series, joint1, joint2):
     """

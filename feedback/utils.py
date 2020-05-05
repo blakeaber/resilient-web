@@ -26,6 +26,22 @@ def generate_keypoint_dicts(payload):
                 timestep=timestep
             )
 
+def get_df_from_payload(payload):
+    """Creates dataframe (with confidence) for use in analytics
+    """
+    list_of_dicts = generate_keypoint_dicts(payload)
+    raw_df = pd.DataFrame(list_of_dicts)
+    return raw_df.pivot(index='timestep', columns='part', values=['x', 'y', 'score'])
+
+def is_confident_detection(df, confidence_threshold=0.8, variability_threshold=0.15, min_pct=0.5):
+    """Determines if keypoint detection is passing confidence threshold
+    """
+    is_confident = (df['score'].mean() >= confidence_threshold)
+    is_consistent = (df['score'].std() <= variability_threshold)
+    result = is_confident & is_consistent
+    observed_pct = result.sum() / result.count()
+    return bool(observed_pct <= min_pct)
+
 def strip_joint_likelihood(df):
     """Removes likelihood score from the keypoints data
     """
@@ -39,13 +55,9 @@ def smooth_coordinate_positions(df, window=5):
     """
     return df.rolling(window=window, center=True, min_periods=1).median()
 
-def transform_keypoint_payload(payload):
-    """Wrapper function that transforms javascript payload
-    into python dataframe
+def transform_keypoint_payload(df):
+    """Wrapper function that transforms dataframe into smoothed coordinates
     """
-    list_of_dicts = generate_keypoint_dicts(payload)
-    raw_df = pd.DataFrame(list_of_dicts)
-    df = raw_df.pivot(index='timestep', columns='part', values=['x', 'y', 'score'])
     df = strip_joint_likelihood(df)
     df = smooth_coordinate_positions(df)
     return df
