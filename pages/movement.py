@@ -10,21 +10,26 @@ typeform_iframe = html.Iframe(
 )
 
 
-modal_feedback = html.Div(
-    [
-        dbc.Button("Give Feedback", id="open-modal-feedback", color='primary'),
-        dbc.Modal(
-            [
-                dbc.ModalHeader("Quick Survey", style={'float': 'left'}),
-                dbc.ModalBody(typeform_iframe),
-                dbc.ModalFooter(dbc.Button("Close", id="close-modal-feedback", style={'float': 'right'}))
-            ],
-            id="modal-feedback",
-            size='xl',
-            backdrop='static',
-            centered=True
-        ),
-    ]
+modal_feedback = dbc.Modal(
+	[
+		dbc.ModalHeader("Quick Survey", style={'float': 'left'}),
+		dbc.ModalBody(typeform_iframe),
+		dbc.ModalFooter(dbc.Button("Close", id="close-modal-feedback", style={'float': 'right'}))
+	],
+	id="modal-feedback",
+	size='xl',
+	backdrop='static',
+	centered=True
+)
+
+
+feedback_request = dbc.Alert([
+	html.P("Honest feedback is the only way we can be successful!"),
+	dbc.Button("Give Feedback", id="open-modal-feedback")
+	],
+	id="feedback-alert",
+	color='info',
+	is_open=True
 )
 
 
@@ -81,6 +86,11 @@ card_1 = dbc.Card(card_content_1, color="light", outline=True)
 card_content_2 = [
     dbc.CardHeader("Details"),
     dbc.CardBody([
+		html.H5("Help Us Improve", className="card-title"),
+        feedback_request,
+    	modal_feedback
+	]),
+    dbc.CardBody([
 		html.H5("Difficulty", className="card-title"),
         dbc.ButtonGroup([
             dbc.Button("Baseline", active=True), 
@@ -107,30 +117,10 @@ cards = html.Div([
 ])
 
 
-layout = dbc.Jumbotron(
-    [
-        dbc.Container(
-            [
-                html.H1("Help Us Improve", className="jumbotron-cards"),
-                html.P(
-                    "Please provide as much honest feedback as possible.",
-                    className="lead",
-                ),
-                html.P(
-                    "It's the only way we can be successful!",
-                    className="lead",
-                ),
-                modal_feedback,
-                html.Br(),
-                cards,
-                modal_ai,
-            ],
-            fluid=True,
-        )
-    ],
-    fluid=True,
-    className="text-center"
-)
+layout = dbc.Container([
+	cards,
+	modal_ai
+	])
 
 
 @app.callback(Output('instruction-video', 'src'),
