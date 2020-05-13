@@ -11,14 +11,14 @@ from app import (
     MATCH,
     ALL
 )
-from pages import programs, exercises, movement, utils
+from pages import howitworks, programs, movement, utils
 
 
 navbar = dbc.NavbarSimple(
     id='nav-bar-id',
     children=[
-        dbc.NavLink("Programs", href="/programs"),
-        dbc.NavLink("Exercises", href="/exercises")
+        dbc.NavLink("How It Works", href="/howitworks"),
+        dbc.NavLink("Programs", href="/programs")
     ],
     brand="Resilient.ai",
     brand_href="/",
@@ -76,11 +76,11 @@ def display_page(pathname, user):
     if not user['email']:
         return login_page
     elif user and (pathname == '/'):
-        return programs.layout
+        return howitworks.layout
+    elif pathname == '/howitworks':
+        return howitworks.layout
     elif pathname == '/programs':
         return programs.layout
-    elif pathname == '/exercises':
-        return exercises.layout
     elif pathname == '/movement':
         return movement.layout
     else:
