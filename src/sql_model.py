@@ -41,7 +41,7 @@ class Sql:
             else:
                 self._commit_records(conn, query)
                 
-        except (Exception, psycopg2.DatabaseError) as error :
+        except (Exception, psycopg2.DatabaseError) as error:
             print ("Error while creating PostgreSQL table:", error)
 
         finally:

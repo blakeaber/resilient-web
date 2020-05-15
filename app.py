@@ -5,6 +5,8 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State, MATCH, ALL
 
 import os
+import time
+from src.sql_model import Sql
 
 
 # external JavaScript files
@@ -12,7 +14,8 @@ external_scripts = [
     'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet',
 	'https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/js/uikit.min.js',
-	'https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/js/uikit-icons.min.js'
+	'https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/js/uikit-icons.min.js',
+	'https://player.vimeo.com/api/player.js'
 ]
 
 
@@ -29,3 +32,5 @@ app = dash.Dash(
 )
 app.title = 'Resilient.ai ALPHA'
 app.config.suppress_callback_exceptions = True
+
+sql = Sql()

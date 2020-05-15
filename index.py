@@ -1,5 +1,6 @@
 from app import (
     os,
+    time,
     app, 
     dash, 
     dbc, 
@@ -65,7 +66,11 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     dcc.Store(id='user-id', storage_type='local'),
     navbar,
-    html.Div(login_page, id='page-content')
+    dcc.Loading(
+		id="loading-placeholder",
+		children=html.Div(login_page, id='page-content'),
+		type="circle"
+	)
 ])
 
 
