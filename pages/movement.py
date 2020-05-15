@@ -110,7 +110,6 @@ card_content_5 = [
 card_5 = dbc.Card(card_content_5, color="light", outline=True)
 
 
-# TODO: put BOTH the instructional video AND the video recording in a modal (to save space)!!!
 cards = html.Div([
     dbc.Row([
         dbc.Col([
@@ -145,6 +144,19 @@ def make_active_flag(n_clicks):
         return False
 
 
+# TODO: put BOTH the instructional video AND the video recording in a modal (to save space)!!!
+
+# TODO: programmatically define the available movement tabs, and display 
+#       "dummy" video and instructions in the absence of data
+
+# TODO: - Integrate the JS pose estimation using localhost domain
+#       - hard-code inch-worm to hit lambda API (for instant feedback)
+#       - confirm that videos from browser are being saved to S3
+
+# NICE TO HAVE: toggle pose estimate joints written to canvas?
+# NICE TO HAVE: video of mobile app (in use) on website?
+
+
 @app.callback([Output('instruction-video', 'src'),
                Output('watch-out-for', 'children')],
               [Input('url', 'href'),
@@ -157,32 +169,36 @@ def display_program_movement(href, button_active, active_tab, pathname):
         movement = active_tab.split('-')[1]
         difficulty = int(button_active)
         if program:
-            program_content = sql.select(f"""
-				select instruction 
-				from instructions
-				where instruction_id in 
-				(select instruction_id
-				from program_content
-				where program_id={program}
-				and exercise_group={movement}
-				and difficulty_level={difficulty})
-                """)
+            try:
+                program_content = sql.select(f"""
+                    select instruction 
+                    from instructions
+                    where instruction_id in 
+                    (select instruction_id
+                    from program_content
+                    where program_id={program}
+                    and exercise_group={movement}
+                    and difficulty_level={difficulty})
+                    """)
+                watch_outs = [dbc.ListGroupItem(item) for item in program_content]
 
-            exercise_details = sql.select(f"""
-				select video_url from exercises
-				where exercise_id = 
-				(select distinct exercise_id 
-				from program_content
-                where program_id={program} 
-                and exercise_group={movement} 
-                and difficulty_level={difficulty})
-                """)
-            exercise_details = next(exercise_details)
-            
-            watch_outs = [dbc.ListGroupItem(item) for item in program_content]
-            
-            return exercise_details['video_url'], watch_outs
+                exercise_details = sql.select(f"""
+                    select video_url from exercises
+                    where exercise_id = 
+                    (select distinct exercise_id 
+                    from program_content
+                    where program_id={program} 
+                    and exercise_group={movement} 
+                    and difficulty_level={difficulty})
+                    """)
+                video_url = [i for i in exercise_details]
 
+            
+                return video_url[0]['video_url'], watch_outs  # BAD!!!
+            except:
+                dummy_video = 'https://www.youtube.com/embed/7_65656eSJg'
+                dummy_watch_outs = [dbc.ListGroupItem('Oops!')]
+                return dummy_video, dummy_watch_outs
 
 @app.callback(
     Output("modal-feedback", "is_open"),

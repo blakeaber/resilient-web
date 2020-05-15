@@ -49,8 +49,7 @@ class Sql:
                 conn.close()
     
     def select(self, query):
-        for item in self._execute(query, return_results=True):
-            yield item
+        return self._execute(query, return_results=True)
         
 
 
