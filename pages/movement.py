@@ -6,6 +6,7 @@ from app import (
     Input, 
     Output, 
     State,
+    ClientsideFunction,
     sql
     )
 from pages import utils
@@ -35,19 +36,6 @@ modal_feedback = dbc.Modal(
 feedback_request = dbc.Button("Help Us Improve", id="open-modal-feedback", color='success')
 
 
-modal_ai = dbc.Modal(
-            [
-                dbc.ModalHeader("Awesome pose estimation AI!"),
-                dbc.ModalBody("HTML Video, on/off recording buttons, etc"),
-                dbc.ModalFooter(
-                    dbc.Button("Close", id="close-modal-ai")
-                ),
-            ],
-            id="video-modal-ai",
-            size="xl"
-        )
-
-
 card_content_1 = dbc.CardHeader([
     dbc.Tabs(
         [
@@ -71,7 +59,7 @@ card_2 = dbc.Card(card_content_2, color="light", outline=True)
 
 card_content_3 = dbc.CardBody([
     dbc.Button([
-        "digital  ", 
+        "instant  ", 
         html.Img(width=35, src='https://static.thenounproject.com/png/2486348-200.png'),
         "  feedback", 
     ], 
@@ -129,10 +117,7 @@ cards = html.Div([
 ])
 
 
-layout = dbc.Container([
-    cards,
-    modal_ai
-    ])
+layout = dbc.Container([cards])
 
 
 @app.callback(Output('advanced-button', 'active'),
@@ -144,17 +129,10 @@ def make_active_flag(n_clicks):
         return False
 
 
-# TODO: put BOTH the instructional video AND the video recording in a modal (to save space)!!!
-
-# TODO: programmatically define the available movement tabs, and display 
-#       "dummy" video and instructions in the absence of data
-
 # TODO: - Integrate the JS pose estimation using localhost domain
 #       - hard-code inch-worm to hit lambda API (for instant feedback)
-#       - confirm that videos from browser are being saved to S3
 
 # NICE TO HAVE: toggle pose estimate joints written to canvas?
-# NICE TO HAVE: video of mobile app (in use) on website?
 
 
 @app.callback([Output('instruction-video', 'src'),
@@ -164,12 +142,12 @@ def make_active_flag(n_clicks):
                Input('movement-tabs', 'active_tab')],
                [State('url', 'pathname')])
 def display_program_movement(href, button_active, active_tab, pathname):
-    if pathname.startswith('/movement'):
-        program = utils.parse_url_parameters(href, param='pg')
-        movement = active_tab.split('-')[1]
-        difficulty = int(button_active)
-        if program:
-            try:
+    try:
+        if pathname.startswith('/movement'):
+            program = utils.parse_url_parameters(href, param='pg')
+            movement = active_tab.split('-')[1]
+            difficulty = int(button_active)
+            if program:
                 program_content = sql.select(f"""
                     select instruction 
                     from instructions
@@ -193,12 +171,12 @@ def display_program_movement(href, button_active, active_tab, pathname):
                     """)
                 video_url = [i for i in exercise_details]
 
-            
                 return video_url[0]['video_url'], watch_outs  # BAD!!!
-            except:
-                dummy_video = 'https://www.youtube.com/embed/7_65656eSJg'
-                dummy_watch_outs = [dbc.ListGroupItem('Oops!')]
-                return dummy_video, dummy_watch_outs
+    except:
+        dummy_video = 'https://www.youtube.com/embed/7_65656eSJg'
+        dummy_watch_outs = [dbc.ListGroupItem('Oops!')]
+        return dummy_video, dummy_watch_outs
+
 
 @app.callback(
     Output("modal-feedback", "is_open"),
