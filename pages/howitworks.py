@@ -1,6 +1,4 @@
 from app import dbc, dcc, html
-from pages import data
-
 
 
 the_problem = dbc.Container([

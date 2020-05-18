@@ -1,158 +1,181 @@
-from app import app, dbc, dcc, html, Input, Output, State
-from pages import data, utils
+from app import (
+    app, 
+    dbc, 
+    dcc, 
+    html, 
+    Input, 
+    Output, 
+    State,
+    ClientsideFunction,
+    sql
+    )
+from pages import utils
 
 
 typeform_iframe = html.Iframe(
-	id='give-feedback', 
-	src='https://ba881.typeform.com/to/hJ6vPg',
-	width='100%',
-	height=400
+    id='give-feedback', 
+    src='https://ba881.typeform.com/to/hJ6vPg',
+    width='100%',
+    height=400
 )
 
 
-modal_feedback = html.Div(
+modal_feedback = dbc.Modal(
     [
-        dbc.Button("Give Feedback", id="open-modal-feedback", color='primary'),
-        dbc.Modal(
-            [
-                dbc.ModalHeader("Quick Survey", style={'float': 'left'}),
-                dbc.ModalBody(typeform_iframe),
-                dbc.ModalFooter(dbc.Button("Close", id="close-modal-feedback", style={'float': 'right'}))
-            ],
-            id="modal-feedback",
-            size='xl',
-            backdrop='static',
-            centered=True
-        ),
-    ]
+        dbc.ModalHeader("Quick Survey", style={'float': 'left'}),
+        dbc.ModalBody(typeform_iframe),
+        dbc.ModalFooter(dbc.Button("Close", id="close-modal-feedback", style={'float': 'right'}))
+    ],
+    id="modal-feedback",
+    size='xl',
+    backdrop='static',
+    centered=True
 )
 
 
-modal_ai = dbc.Modal(
-            [
-                dbc.ModalHeader("Awesome pose estimation AI!"),
-                dbc.ModalBody("HTML Video, on/off recording buttons, etc"),
-                dbc.ModalFooter(
-                    dbc.Button("Close", id="close-modal-ai")
-                ),
-            ],
-            id="video-modal-ai",
-            size="xl"
-        )
+feedback_request = dbc.Button("Help Us Improve", id="open-modal-feedback", color='success')
 
 
-card_content_1 = [
-	dbc.CardHeader([
-		dbc.Tabs(
-			[
-				dbc.Tab(label="Movement 1", tab_id="tab-1"),
-				dbc.Tab(label="Movement 2", tab_id="tab-2"),
-				dbc.Tab(label="Movement 3", tab_id="tab-3")
-			],
-			id="card-tabs",
-			card=True,
-			active_tab="tab-1",
-		)
-	]),
-    dbc.CardBody([
-        dbc.Alert([
-            "After watching the video, try it out with ",
-            dbc.Button([
-                "digital  ", 
-                html.Img(width=50, src='https://static.thenounproject.com/png/2486348-200.png'),
-                "  feedback", 
-            ], id="open-modal-ai")
-            ],
-            id="alert-fade",
-            color='secondary',
-            dismissable=True,
-            is_open=True,
-        ),
-		html.Iframe(
-			id='instruction-video',
-			width=600,
-			height=400
-		)
-	])
-]
+card_content_1 = dbc.CardHeader([
+    dbc.Tabs(
+        [
+            dbc.Tab(label="Movement 1", tab_id="movement-1"),
+            dbc.Tab(label="Movement 2", tab_id="movement-2"),
+            dbc.Tab(label="Movement 3", tab_id="movement-3")
+        ],
+        id="movement-tabs",
+        card=True
+    )
+])
 card_1 = dbc.Card(card_content_1, color="light", outline=True)
 
 
-card_content_2 = [
+card_content_2 = dbc.CardBody([
+    feedback_request,
+    modal_feedback
+])
+card_2 = dbc.Card(card_content_2, color="light", outline=True)
+
+
+card_content_3 = dbc.CardBody([
+    dbc.Button([
+        "instant  ", 
+        html.Img(width=35, src='https://static.thenounproject.com/png/2486348-200.png'),
+        "  feedback", 
+    ], 
+    id="open-modal-ai",
+    color='success')
+])
+card_3 = dbc.Card(card_content_3, color="light", outline=True)
+
+
+
+card_content_4 = dbc.CardBody([
+    html.Iframe(
+        id='instruction-video',
+        width=600,
+        height=400
+    )
+])
+card_4 = dbc.Card(card_content_4, color="light", outline=True)
+
+
+
+card_content_5 = [
     dbc.CardHeader("Details"),
     dbc.CardBody([
-		html.H5("Difficulty", className="card-title"),
-        dbc.ButtonGroup([
-            dbc.Button("Baseline", active=True), 
-            dbc.Button("Advanced")
-            ],
-            size="sm"
-        )]),
+        html.H5("Difficulty", className="card-title"),
+        dbc.Button("Advanced", id='advanced-button', size='med')
+    ]),
     dbc.CardBody([
-		html.H5("Watch Out For", className="card-title"),
-		dbc.ListGroup(
-			id='watch-out-for',
-			flush=True,
-		)
-	])
+        html.H5("Watch Out For", className="card-title"),
+        dbc.ListGroup(
+            id='watch-out-for',
+            flush=True,
+        )
+    ])
 ]
-card_2 = dbc.Card(card_content_2, color="light", outline=True)
+card_5 = dbc.Card(card_content_5, color="light", outline=True)
 
 
 cards = html.Div([
     dbc.Row([
-        dbc.Col(card_1, width=8), 
-        dbc.Col(card_2, width=4)
-    ])
+        dbc.Col([
+            dbc.Row([
+                dbc.Col(card_1, width=12)
+            ], justify="center"),
+            dbc.Row([
+                dbc.Col(card_4, width=12)
+            ], justify="center"),
+            dbc.Row([
+                dbc.Col(card_2, width=6, align='center'),
+                dbc.Col(card_3, width=6, align='center')
+            ], justify="center"),
+        ], width=7), 
+        dbc.Col(card_5, width=5)
+    ], justify="center")
 ])
 
 
-layout = dbc.Jumbotron(
-    [
-        dbc.Container(
-            [
-                html.H1("Help Us Improve", className="jumbotron-cards"),
-                html.P(
-                    "Please provide as much honest feedback as possible.",
-                    className="lead",
-                ),
-                html.P(
-                    "It's the only way we can be successful!",
-                    className="lead",
-                ),
-                modal_feedback,
-                html.Br(),
-                cards,
-                modal_ai,
-            ],
-            fluid=True,
-        )
-    ],
-    fluid=True,
-    className="text-center"
-)
+layout = dbc.Container([cards])
 
 
-@app.callback(Output('instruction-video', 'src'),
-              [Input('url', 'href')],
-              [State('url', 'pathname')])
-def display_instructional_video(href, pathname):
-    if pathname.startswith('/movement'):
-        exercise = utils.parse_url_parameters(href, param='ex')
-        if exercise:
-	        return data.EXERCISES[exercise]['video-link']
+@app.callback(Output('advanced-button', 'active'),
+              [Input('advanced-button', 'n_clicks')])
+def make_active_flag(n_clicks):
+    if n_clicks:
+        return n_clicks % 2 == 1
+    else:
+        return False
 
 
-@app.callback(Output('watch-out-for', 'children'),
-              [Input('url', 'href')],
-              [State('url', 'pathname')])
-def display_instructions(href, pathname):
-    if pathname.startswith('/movement'):
-        exercise = utils.parse_url_parameters(href, param='ex')
-        if exercise:
-            return [
-                dbc.ListGroupItem(item) for item in data.EXERCISES[exercise]['watch-out-for']
-            ]
+# TODO: - Integrate the JS pose estimation using localhost domain
+#       - hard-code inch-worm to hit lambda API (for instant feedback)
+
+# NICE TO HAVE: toggle pose estimate joints written to canvas?
+
+
+@app.callback([Output('instruction-video', 'src'),
+               Output('watch-out-for', 'children')],
+              [Input('url', 'href'),
+               Input('advanced-button', 'active'),
+               Input('movement-tabs', 'active_tab')],
+               [State('url', 'pathname')])
+def display_program_movement(href, button_active, active_tab, pathname):
+    try:
+        if pathname.startswith('/movement'):
+            program = utils.parse_url_parameters(href, param='pg')
+            movement = active_tab.split('-')[1]
+            difficulty = int(button_active)
+            if program:
+                program_content = sql.select(f"""
+                    select instruction 
+                    from instructions
+                    where instruction_id in 
+                    (select instruction_id
+                    from program_content
+                    where program_id={program}
+                    and exercise_group={movement}
+                    and difficulty_level={difficulty})
+                    """)
+                watch_outs = [dbc.ListGroupItem(item) for item in program_content]
+
+                exercise_details = sql.select(f"""
+                    select video_url from exercises
+                    where exercise_id = 
+                    (select distinct exercise_id 
+                    from program_content
+                    where program_id={program} 
+                    and exercise_group={movement} 
+                    and difficulty_level={difficulty})
+                    """)
+                video_url = [i for i in exercise_details]
+
+                return video_url[0]['video_url'], watch_outs  # BAD!!!
+    except:
+        dummy_video = 'https://www.youtube.com/embed/7_65656eSJg'
+        dummy_watch_outs = [dbc.ListGroupItem('Oops!')]
+        return dummy_video, dummy_watch_outs
 
 
 @app.callback(
