@@ -59,7 +59,7 @@ card_2 = dbc.Card(card_content_2, color="light", outline=True)
 
 card_content_3 = dbc.CardBody([
     dbc.Button([
-        "instant  ", 
+        "digital  ", 
         html.Img(width=35, src='https://static.thenounproject.com/png/2486348-200.png'),
         "  feedback", 
     ], 

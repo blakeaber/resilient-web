@@ -181,20 +181,6 @@ def toggle_active_button(start_button_ts, stop_button_ts, is_open):
         return True, False
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     debug = False if os.environ['DASH_DEBUG_MODE'] == 'False' else True
 
