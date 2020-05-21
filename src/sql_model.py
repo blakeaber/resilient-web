@@ -25,6 +25,8 @@ class Sql:
                 yield row  
 
     def _execute(self, query, return_results=False):
+        conn = None
+
         try:
             conn = psycopg2.connect(
                 user=self.user,

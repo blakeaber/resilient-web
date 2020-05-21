@@ -8,9 +8,10 @@ COPY . /resilientai
 WORKDIR /resilientai
 EXPOSE 5000
 
-ENV RDS_ENDPOINT blake
-ENV RDS_USER ***REMOVED***
+ENV RDS_USER blake
 ENV RDS_PASS ***REMOVED***
+ENV RDS_ENDPOINT ***REMOVED***
+ENV RDS_PORT 5432
 
 # CMD ["python", "index.py"]
 # https://pythonspeed.com/articles/gunicorn-in-docker/
