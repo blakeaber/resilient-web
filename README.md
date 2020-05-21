@@ -1,20 +1,19 @@
-# Docker Dash (Plotly)
 
-Dockerize a Python Dash app for quick prototyping.
-
-## Switch debug mode in Dockerfile
-
-```dockerfile
-ENV DASH_DEBUG_MODE True # False
-```
-
-## Build and run
+#### Deploy, tag and push local image to ECR
 
 ```sh
-docker build -t dash . && docker run --rm -p 8050:8050 dash
+docker build -t resilient-ai-rds .
+docker tag resilient-ai-rds:latest 162471567408.dkr.ecr.us-east-1.amazonaws.com/resilient-ai-rds:latest
+docker push 162471567408.dkr.ecr.us-east-1.amazonaws.com/resilient-ai-rds:latest
 ```
 
-## Access the page
+#### Run image in container locally
 
-Go to `http://0.0.0.0:8050/` in browser.
-# resilient-web
+```sh
+docker run -t resilient-ai-rds:latest -p 5000:5000
+```
+
+#### Access the page
+
+Go to `http://0.0.0.0:5000/` in browser.
+
