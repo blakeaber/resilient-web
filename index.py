@@ -181,25 +181,9 @@ def toggle_active_button(start_button_ts, stop_button_ts, is_open):
         return True, False
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
-    debug = False if os.environ['DASH_DEBUG_MODE'] == 'False' else True
-
     app.run_server(
-        host='localhost',
-        port=os.environ['APP_PORT'],
-        debug=debug
+        host='0.0.0.0',
+        port=5000,
+        debug=True
     )

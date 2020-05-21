@@ -6,10 +6,6 @@ RUN set -ex && \
 
 COPY . /app
 WORKDIR /app
-
-ENV DASH_DEBUG_MODE True
-ENV APP_PORT 5000
-
 EXPOSE 5000
 
 CMD ["python", "index.py"]
