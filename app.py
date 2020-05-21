@@ -36,12 +36,14 @@ app = dash.Dash(
 app.title = 'Resilient.ai ALPHA'
 app.config.suppress_callback_exceptions = True
 
+# Gunicorn Invocation
+server = app.server
 
 # Postgres Connector
 sql = Sql(
-    user = "blake",
-    password = "***REMOVED***",
-    host = "***REMOVED***",
-    port = 5432,
+    user = os.environ['RDS_USER'],
+    password = os.environ['RDS_PASS'],
+    host = os.environ['RDS_ENDPOINT'],
+    port = port = os.environ['RDS_PORT'],
     database = "postgres"
 )
