@@ -1,4 +1,9 @@
 
+#### Update ECR Authentication Token
+```sh
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 162471567408.dkr.ecr.us-east-1.amazonaws.com
+```
+
 #### Deploy, tag and push local image to ECR
 
 ```sh
