@@ -8,9 +8,10 @@ COPY . /resilientai
 WORKDIR /resilientai
 EXPOSE 5000
 
-ENV RDS_ENDPOINT blake
-ENV RDS_USER !?ba94!:fx7
-ENV RDS_PASS resilient-ai-db-dev.cpyof9gq0ppq.us-east-1.rds.amazonaws.com
+ENV RDS_USER blake
+ENV RDS_PASS !?ba94!:fx7
+ENV RDS_ENDPOINT resilient-ai-db-dev.cpyof9gq0ppq.us-east-1.rds.amazonaws.com
+ENV RDS_PORT 5432
 
 # CMD ["python", "index.py"]
 # https://pythonspeed.com/articles/gunicorn-in-docker/
