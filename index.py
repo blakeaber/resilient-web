@@ -11,7 +11,8 @@ from app import (
     State,
     MATCH,
     ALL,
-    ClientsideFunction
+    ClientsideFunction,
+    server
 )
 from pages import howitworks, programs, movement, utils
 
@@ -185,5 +186,5 @@ if __name__ == '__main__':
     app.run_server(
         host='0.0.0.0',
         port=5000,
-        debug=True
+        debug=False
     )
