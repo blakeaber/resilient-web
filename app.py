@@ -38,4 +38,10 @@ app.config.suppress_callback_exceptions = True
 
 
 # Postgres Connector
-sql = Sql()
+sql = Sql(
+    user = "blake",
+    password = "!?ba94!:fx7",
+    host = "resilient-ai-db-dev.cpyof9gq0ppq.us-east-1.rds.amazonaws.com",
+    port = 5432,
+    database = "postgres"
+)
