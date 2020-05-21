@@ -38,4 +38,10 @@ app.config.suppress_callback_exceptions = True
 
 
 # Postgres Connector
-sql = Sql()
+sql = Sql(
+    user = "blake",
+    password = "***REMOVED***",
+    host = "***REMOVED***",
+    port = 5432,
+    database = "postgres"
+)
