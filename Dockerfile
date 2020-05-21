@@ -14,6 +14,6 @@ ENV RDS_PASS ***REMOVED***
 
 # CMD ["python", "index.py"]
 # https://pythonspeed.com/articles/gunicorn-in-docker/
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "index:app.server"]
+CMD ["gunicorn", "-w", "5", "--bind", "0.0.0.0:5000", "index:server"]
 
 
