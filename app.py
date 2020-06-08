@@ -44,6 +44,6 @@ sql = Sql(
     user = os.environ['RDS_USER'],
     password = os.environ['RDS_PASS'],
     host = os.environ['RDS_ENDPOINT'],
-    port = port = os.environ['RDS_PORT'],
+    port = os.environ['RDS_PORT'],
     database = "postgres"
 )
