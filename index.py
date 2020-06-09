@@ -41,6 +41,7 @@ login_form = html.Form([
     dbc.Button("Sign In", id='login-button', color="primary")
 ], className="col-md-5 p-lg-5 mx-auto")
 
+
 login_page = dbc.Jumbotron([
     dbc.Container(
         [
@@ -66,7 +67,7 @@ login_page = dbc.Jumbotron([
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    dcc.Store(id='user-id', storage_type='local'),
+    dcc.Store(id='user-id', storage_type='session'),
     navbar,
     html.Div(id='page-content'),
     html.Div(id='start-button-target'),
@@ -109,7 +110,10 @@ def verify_login(n_clicks, email, password):
     if n_clicks and email:
         expected_password = utils.generate_password_for_user(email, 'resilient')
         if password == expected_password:
-            return {'email': email}
+            return {
+                'email': email,
+                'user-hash': password
+            }
 
 
 if __name__ == '__main__':
