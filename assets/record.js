@@ -49,11 +49,6 @@ function clickStartButton(is_active) {
 		// Disable start recording button
 		document.getElementById('btn-start-recording').disabled = true;
 
-		// Disable tabs so user doesn't munge exercise info
-		document.getElementById('exercise-tab-1').disabled = true;
-		document.getElementById('exercise-tab-2').disabled = true;
-		document.getElementById('exercise-tab-3').disabled = true;
-
 		// Request access to the media devices
 		navigator.mediaDevices.getUserMedia({
 			audio: true, 
@@ -86,19 +81,18 @@ function clickStartButton(is_active) {
 
 
 // Events on clicking stop button
-function clickStopButton(is_active) {
+function clickStopButton(is_active, user_data, exercise_id) {
     if (is_active) {
 		var video = document.getElementById('feedback-video');
 		var percentage = document.getElementById('percentage');
 
+        let current_time = Date.now()
+        let user_hash = user_data['user-hash']
+        console.log(user_data)
+
 		// Re-enable start recording button
 		document.getElementById('btn-stop-recording').disabled = true;
 		document.getElementById('btn-start-recording').disabled = false;
-
-		// Disable tabs so user doesn't munge exercise info
-		document.getElementById('exercise-tab-1').disabled = false;
-		document.getElementById('exercise-tab-2').disabled = false;
-		document.getElementById('exercise-tab-3').disabled = false;
 
 		recorder.stopRecording().then(function(){
 			var Blob = recorder.getBlob();
@@ -112,7 +106,7 @@ function clickStopButton(is_active) {
 					// var objKey = 'video/user/web/'+random+'.'+data.type.split('/')[1];
 		
 					// otherwise...
-					var objKey = 'video/user/web/'+random+'.webm';
+                    var objKey = `video/user/web/${user_hash}-${exercise_id}-${current_time}.webm`;
 		
 					var params = {
 						Key: objKey,

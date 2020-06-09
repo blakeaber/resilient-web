@@ -7,9 +7,9 @@ from app import (
     Output, 
     State,
     ClientsideFunction,
-    sql
+    sql,
+    time
     )
-from pages import utils
 
 
 exercises = dbc.Card(
@@ -30,11 +30,12 @@ exercises = dbc.Card(
 
 videos = dbc.Card(
     dbc.CardBody([
-        html.Div(
-            html.Iframe(id='instructional-video', className='embed-responsive-item'),
+        html.Div([
+            html.Video(id='feedback-video', className='embed-responsive-item'),
+            html.Iframe(id='instructional-video', className='embed-responsive-item')
+            ],
             className='embed-responsive embed-responsive-16by9'
         ),
-        html.Video(id='feedback-video'),
         html.P(id='percentage')
     ])
 , color="light", outline=True)
@@ -43,8 +44,8 @@ videos = dbc.Card(
 controls = dbc.Card([
     dbc.CardHeader("Recording"),
     dbc.CardBody([
-        dbc.Button("Start", id="btn-start-recording"),
-        dbc.Button("Stop", id="btn-stop-recording"),
+        dbc.Button("Start", id="btn-start-recording", size='md'),
+        dbc.Button("Stop", id="btn-stop-recording", size='md'),
     ])
 ], color="light", outline=True)
 
@@ -58,15 +59,15 @@ layout = dbc.Container([
             dbc.Row([
                 dbc.Col(videos, width=12)
             ], justify="center"),
-        ], width=7), 
-        dbc.Col(controls, width=5)
+        ], width=10), 
+        dbc.Col(controls, width=2)
     ], justify="center")
 ])
 
 
 @app.callback(Output('instructional-video', 'src'),
               [Input('exercise-tabs', 'active_tab')])
-def display_program_movement(active_tab):
+def display_exercise_video(active_tab):
     if active_tab == 1:
         return 'https://player.vimeo.com/video/112866269'
     elif active_tab == 7:
@@ -75,6 +76,28 @@ def display_program_movement(active_tab):
         return 'https://player.vimeo.com/video/347119375'
     else:
         return None
+
+
+@app.callback([Output('exercise-tab-1', 'disabled'),
+               Output('exercise-tab-2', 'disabled'),
+               Output('exercise-tab-3', 'disabled')],
+              [Input('btn-start-recording', 'active')])
+def disable_tabs_while_recording(is_recording):
+    if is_recording:
+        return True, True, True
+        
+    else:
+        return False, False, False
+
+
+@app.callback([Output('instructional-video', 'style'),
+               Output('feedback-video', 'style')],
+              [Input('btn-start-recording', 'active')])
+def toggle_video_src_if_recording(is_recording):
+    if is_recording:
+        return {'display': 'none'}, {'display': 'block'}
+    else:
+        return {'display': 'block'}, {'display': 'none'}
 
 
 app.clientside_callback(
@@ -93,7 +116,9 @@ app.clientside_callback(
         function_name='click_stop_button'
     ),
     Output('stop-button-target', 'children'),
-    [Input('btn-stop-recording', 'active')]
+    [Input('btn-stop-recording', 'active')],
+    [State('user-id', 'data'),
+     State('exercise-tabs', 'active_tab')]
 )
 
 
