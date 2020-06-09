@@ -49,6 +49,11 @@ function clickStartButton(is_active) {
 		// Disable start recording button
 		document.getElementById('btn-start-recording').disabled = true;
 
+		// Disable tabs so user doesn't munge exercise info
+		document.getElementById('exercise-tab-1').disabled = true;
+		document.getElementById('exercise-tab-2').disabled = true;
+		document.getElementById('exercise-tab-3').disabled = true;
+
 		// Request access to the media devices
 		navigator.mediaDevices.getUserMedia({
 			audio: true, 
@@ -86,8 +91,15 @@ function clickStopButton(is_active) {
 		var video = document.getElementById('feedback-video');
 		var percentage = document.getElementById('percentage');
 
+		// Re-enable start recording button
 		document.getElementById('btn-stop-recording').disabled = true;
 		document.getElementById('btn-start-recording').disabled = false;
+
+		// Disable tabs so user doesn't munge exercise info
+		document.getElementById('exercise-tab-1').disabled = false;
+		document.getElementById('exercise-tab-2').disabled = false;
+		document.getElementById('exercise-tab-3').disabled = false;
+
 		recorder.stopRecording().then(function(){
 			var Blob = recorder.getBlob();
 			Blob.then(function(data){
