@@ -14,14 +14,15 @@ from app import (
     ClientsideFunction,
     server
 )
-from pages import howitworks, exercise, utils
+from pages import howitworks, exercise, profile, utils
 
 
 navbar = dbc.NavbarSimple(
     id='nav-bar-id',
     children=[
         dbc.NavLink("How It Works", href="/howitworks"),
-        dbc.NavLink("Exercises", href="/exercise")
+        dbc.NavLink("Exercises", href="/exercise"),
+        dbc.NavLink("Profile", href="/profile")
     ],
     brand="Resilient.ai",
     brand_href="/",
@@ -30,6 +31,7 @@ navbar = dbc.NavbarSimple(
     sticky='top',
     style={'display': 'none'}
 )
+
 
 login_form = html.Form([
     dbc.FormGroup([
@@ -58,7 +60,7 @@ login_page = dbc.Jumbotron([
             ),
             login_form
         ],
-        fluid=True
+        fluid=False
     )],
     fluid=True,
     className="text-center"
@@ -83,11 +85,13 @@ def display_page(pathname, user):
     if not user['email']:
         return login_page
     elif user and (pathname == '/'):
-        return howitworks.layout
+        return profile.layout
     elif pathname == '/howitworks':
         return howitworks.layout
     elif pathname == '/exercise':
         return exercise.layout
+    elif pathname == '/profile':
+        return profile.layout
     else:
         return '404'
 
