@@ -90,14 +90,19 @@ def disable_tabs_while_recording(is_recording):
         return False, False, False
 
 
-@app.callback([Output('instructional-video', 'style'),
+@app.callback([Output('btn-start-recording', 'children'),
+               Output('instructional-video', 'style'),
                Output('feedback-video', 'style')],
               [Input('btn-start-recording', 'active')])
 def toggle_video_src_if_recording(is_recording):
     if is_recording:
-        return {'display': 'none'}, {'display': 'block'}
+        return (
+            dbc.Spinner(color="success", type="grow", size="md"), 
+            {'display': 'none'}, 
+            {'display': 'block'}
+        )
     else:
-        return {'display': 'block'}, {'display': 'none'}
+        return "Start", {'display': 'block'}, {'display': 'none'}
 
 
 app.clientside_callback(
