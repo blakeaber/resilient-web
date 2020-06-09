@@ -44,13 +44,24 @@ videos = dbc.Card(
 controls = dbc.Card([
     dbc.CardHeader("Exercise"),
     dbc.CardBody([
-        html.H5('Record'),
+        html.H5('Recording'),
         dbc.Button("Start", id="btn-start-recording", size='md'),
         dbc.Button("Stop", id="btn-stop-recording", size='md'),
     ]),
     dbc.CardBody([
+        html.H5('Goal'),
+        html.Div(id='goal-instruction'),
+    ]),
+    dbc.CardBody([
         html.H5('Duration'),
-        html.Div(id='duration-instruction'),
+        html.H1([
+            dbc.Badge(id='duration-display', pill=True, color="success", className="ml-1")
+        ]),
+        dcc.Interval(
+            id='duration-timer',
+            interval=1000,
+            n_intervals=0
+        ),
     ])
 ], color="light", outline=True)
 
@@ -71,7 +82,7 @@ layout = dbc.Container([
 
 
 @app.callback([Output('instructional-video', 'src'),
-               Output('duration-instruction', 'children')],
+               Output('goal-instruction', 'children')],
               [Input('exercise-tabs', 'active_tab')])
 def display_exercise_video(active_tab):
     if active_tab == 1:
@@ -94,6 +105,21 @@ def disable_tabs_while_recording(is_recording):
         
     else:
         return False, False, False
+
+
+@app.callback(Output('duration-timer', 'n_intervals'),
+              [Input('btn-start-recording', 'active')])
+def disable_tabs_while_recording(is_recording):
+    if is_recording:
+        return 0
+
+
+@app.callback(Output('duration-display', 'children'),
+              [Input('duration-timer', 'n_intervals')],
+              [State('btn-start-recording', 'active')])
+def disable_tabs_while_recording(timer, is_recording):
+    if is_recording:
+	    return timer
 
 
 @app.callback([Output('btn-start-recording', 'children'),
