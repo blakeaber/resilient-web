@@ -14,15 +14,16 @@ from app import (
     ClientsideFunction,
     server
 )
-from pages import howitworks, exercise, profile, utils
+from pages import howitworks, exercise, diary, profile, utils
 
 
 navbar = dbc.NavbarSimple(
     id='nav-bar-id',
     children=[
         dbc.NavLink("How It Works", href="/howitworks"),
-        dbc.NavLink("Exercises", href="/exercise"),
-        dbc.NavLink("Profile", href="/profile")
+        dbc.NavLink("Profile", href="/profile"),
+        dbc.NavLink("Diary", href="/diary"),
+        dbc.NavLink("Exercises", href="/exercise")
     ],
     brand="Resilient.ai",
     brand_href="/",
@@ -92,6 +93,8 @@ def display_page(pathname, user):
         return exercise.layout
     elif pathname == '/profile':
         return profile.layout
+    elif pathname == '/diary':
+        return diary.layout
     else:
         return '404'
 
