@@ -18,7 +18,7 @@ exercises = dbc.Card(
             [
                 dbc.Tab(id='exercise-tab-1', label="1. Couch Stretch", tab_id=1),
                 dbc.Tab(id='exercise-tab-2', label="2. Inch Worm", tab_id=7),    
-                dbc.Tab(id='exercise-tab-3', label="3. Half Kneeling Windmill", tab_id=11)
+                dbc.Tab(id='exercise-tab-3', label="3. Kneeling Windmill", tab_id=11)
             ],
             id="exercise-tabs",
             active_tab=1,
@@ -42,10 +42,15 @@ videos = dbc.Card(
 
 
 controls = dbc.Card([
-    dbc.CardHeader("Recording"),
+    dbc.CardHeader("Exercise"),
     dbc.CardBody([
+        html.H5('Record'),
         dbc.Button("Start", id="btn-start-recording", size='md'),
         dbc.Button("Stop", id="btn-stop-recording", size='md'),
+    ]),
+    dbc.CardBody([
+        html.H5('Duration'),
+        html.Div(id='duration-instruction'),
     ])
 ], color="light", outline=True)
 
@@ -59,21 +64,22 @@ layout = dbc.Container([
             dbc.Row([
                 dbc.Col(videos, width=12)
             ], justify="center"),
-        ], width=10), 
-        dbc.Col(controls, width=2)
+        ], width=9), 
+        dbc.Col(controls, width=3)
     ], justify="center")
 ])
 
 
-@app.callback(Output('instructional-video', 'src'),
+@app.callback([Output('instructional-video', 'src'),
+               Output('duration-instruction', 'children')],
               [Input('exercise-tabs', 'active_tab')])
 def display_exercise_video(active_tab):
     if active_tab == 1:
-        return 'https://player.vimeo.com/video/112866269'
+        return 'https://player.vimeo.com/video/112866269', '30 seconds on each side'
     elif active_tab == 7:
-        return 'https://player.vimeo.com/video/70591644'
+        return 'https://player.vimeo.com/video/70591644', '2 sets of 5 on each side'
     elif active_tab == 11:
-        return 'https://player.vimeo.com/video/347119375'
+        return 'https://player.vimeo.com/video/347119375', '2 sets of 10 on each side'
     else:
         return None
 
