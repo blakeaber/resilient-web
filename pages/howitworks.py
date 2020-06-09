@@ -85,11 +85,11 @@ call_to_action = jumbotron = dbc.Jumbotron(
             "provides AI-assisted, real-time feeback",
             className="lead"
         ),
-        html.P(dbc.Button("Try It Out", href='/programs', color="primary", size='lg'), className="lead"),
+        html.P(dbc.Button("Try It Out", href='/profile', color="primary", size='lg'), className="lead"),
     ]
 )
 
-final_chance = dbc.Button("Get Started", href='/programs', color="primary", size='lg', block=True)
+final_chance = dbc.Button("Get Started", href='/profile', color="primary", size='lg', block=True)
 
 featurettes = dbc.Container([
 	dbc.Row([

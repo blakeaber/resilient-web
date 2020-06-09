@@ -171,7 +171,7 @@ demographics = dbc.Card([
 
 
 experience = dbc.Card([
-    dbc.CardHeader("Pain Diary"),
+    dbc.CardHeader("Baseline"),
     dbc.CardBody(
 		dbc.Form([
 			personal_history,
