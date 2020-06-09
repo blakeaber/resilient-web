@@ -88,7 +88,6 @@ function clickStopButton(is_active, user_data, exercise_id) {
 
         let current_time = Date.now()
         let user_hash = user_data['user-hash']
-        console.log(user_data)
 
 		// Re-enable start recording button
 		document.getElementById('btn-stop-recording').disabled = true;
