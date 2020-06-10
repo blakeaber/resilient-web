@@ -14,6 +14,4 @@ ENV RDS_ENDPOINT resilient-ai-db-dev.cpyof9gq0ppq.us-east-1.rds.amazonaws.com
 ENV RDS_PORT 5432
 
 # https://pythonspeed.com/articles/gunicorn-in-docker/
-CMD ["gunicorn", "-w", "5", "--bind", "0.0.0.0:5000", "index:server"]
-
-
+CMD ["gunicorn", "-w", "5", "--bind", "0.0.0.0:5000", "--reload", "index:server"]

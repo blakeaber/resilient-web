@@ -12,6 +12,18 @@ from app import (
     )
 
 
+pain_areas = [
+    'Neck',
+    'Shoulders',
+    'Wrists',
+    'Back',
+    'Hips',
+    'Legs',
+    'Knees',
+    'Feet'
+]
+
+
 pain_level = dbc.FormGroup(
     [
         dbc.Label("Current Pain Level", html_for="pain-slider"),
@@ -33,13 +45,46 @@ pain_level = dbc.FormGroup(
 )
 
 
+pain_increase_checklist = dbc.FormGroup(
+    [
+        dbc.Label("Getting Worse", html_for="pain-increase-checklist"),
+        dbc.Checklist(
+            id="pain-increase-checklist",
+            options=[
+                {"label": i, "value": idx} for idx, i in enumerate(pain_areas)
+            ],
+            switch=True,
+            inline=False
+        )
+    ]
+)
+
+
+pain_decrease_checklist = dbc.FormGroup(
+    [
+        dbc.Label("Getting Better", html_for="pain-decrease-checklist"),
+        dbc.Checklist(
+            id="pain-decrease-checklist",
+            options=[
+                {"label": i, "value": idx} for idx, i in enumerate(pain_areas)
+            ],
+            switch=True,
+            inline=False
+            
+        )
+    ]
+)
+
+
 experience = dbc.Card([
     dbc.CardHeader("Pain Diary"),
     dbc.CardBody([
-		dbc.Form([pain_level])
         html.H1([
             dbc.Badge(id='pain-display', pill=True, color="success", className="ml-1")
         ], style={'text-align': 'center'}),
+		dbc.Form([
+		    pain_level
+		])
     ])
 ], color="light", outline=True)
 
@@ -47,12 +92,21 @@ experience = dbc.Card([
 
 layout = dbc.Container([
     dbc.Row([
-        dbc.Col(experience, width=12)   
+        dbc.Col(experience, width=12),
+    ], justify="center"),
+    dbc.Row([
+        dbc.Col(pain_increase_checklist, width=6),
+        dbc.Col(pain_decrease_checklist, width=6)
+    ], justify="center"),
+    dbc.Row([    
         dbc.Col([
-            dbc.Button("Submit", id='profile-submit-button', color="primary", block=True)
-            ], 
-            width=12),
-    ], justify="center")
+            html.A(
+                dbc.Button("Submit", id='diary-submit-button', color="primary", block=True),
+                href='/exercise'
+            )
+        ], 
+        width=12),
+    ], justify="center"),
 ])
 
 
