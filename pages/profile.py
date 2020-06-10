@@ -8,36 +8,10 @@ from app import (
     State,
     ClientsideFunction,
     sql,
-    time
+    time,
+    json
     )
 
-pain_areas = [
-    'Neck',
-    'Shoulders',
-    'Wrists',
-    'Back',
-    'Hips',
-    'Legs',
-    'Knees',
-    'Feet'
-]
-
-
-body_pain_checklist = dbc.FormGroup(
-    [
-        dbc.Label("Body Pain", html_for="body-pain-checklist"),
-        dbc.Checklist(
-            id="body-pain-checklist",
-            options=[
-                {"label": i, "value": idx} for idx, i in enumerate(pain_areas)
-            ],
-#             labelStyle={'display': 'inline-block', 'margin': '10px'},
-#             inputStyle={'margin': '5px'},
-            switch=True,
-            inline=True
-        )
-    ]
-)
 
 previous_pt = dbc.FormGroup(
     [
@@ -45,8 +19,8 @@ previous_pt = dbc.FormGroup(
         dbc.RadioItems(
             id="previous-pt-radio",
             options=[
-				{'label': 'Yes', 'value': 'Y'},
-				{'label': 'No', 'value': 'N'}
+                {'label': 'Yes', 'value': 'Y'},
+                {'label': 'No', 'value': 'N'}
             ],
             inline=True
         )
@@ -56,17 +30,17 @@ previous_pt = dbc.FormGroup(
 personal_history = dbc.FormGroup(
     [
         dbc.Label("Personal Experience", html_for="personal-experience-text"),
-		dbc.Textarea(
-		    id='personal-experience-text',
-			placeholder="""
-			 - Tell me about the last time you had an injury that required some time to recover
-			 - What did you do to recover from that injury?
-			 - What tools and/or resources did you use to help you recover?
-			""",
-			bs_size="lg",
-			style={'height': 200}
-		)
-	]
+        dbc.Textarea(
+            id='personal-experience-text',
+            placeholder="""
+             - Tell me about the last time you had an injury that required some time to recover
+             - What did you do to recover from that injury?
+             - What tools and/or resources did you use to help you recover?
+            """,
+            bs_size="lg",
+            style={'height': 200}
+        )
+    ]
 )
 
 sex = dbc.FormGroup(
@@ -75,9 +49,9 @@ sex = dbc.FormGroup(
         dbc.RadioItems(
             id="sex-radio",
             options=[
-				{'label': 'Male', 'value': 'M'},
-				{'label': 'Female', 'value': 'F'},
-				{'label': 'Other', 'value': 'O'}
+                {'label': 'Male', 'value': 'M'},
+                {'label': 'Female', 'value': 'F'},
+                {'label': 'Other', 'value': '-'}
             ],
             inline=True
         )
@@ -94,9 +68,10 @@ height = dbc.FormGroup(
             step=1, 
             marks={
                 60: '5ft',
-                66: '5ft, 6in',
+                66: '5ft 6in',
                 72: '6ft',
-            }
+            },
+            updatemode='drag'
         ),
     ]
 )
@@ -108,12 +83,13 @@ weight = dbc.FormGroup(
             id="weight-slider", 
             min=50, 
             max=250, 
-            step=10,
+            step=1,
             marks={
                 100: '100',
                 150: '150',
                 200: '200'
-            }
+            },
+            updatemode='drag'
         ),
     ]
 )
@@ -130,7 +106,8 @@ activity_level = dbc.FormGroup(
                 0: 'Sedentary',
                 5: 'Daily Exercise',
                 10: 'Olympic Athlete'
-            }
+            },
+            updatemode='drag'
         ),
     ]
 )
@@ -140,17 +117,18 @@ age_group = dbc.FormGroup(
         dbc.Label("Age", html_for="age-slider"),
         dcc.Slider(
             id="age-slider", 
-            min=20, 
-            max=70, 
-            step=10, 
+            min=0, 
+            max=90, 
+            step=1, 
             marks={
-                20: '18 – 24',
-                30: '25 – 34',
-                40: '35 – 44',
-                50: '45 – 54',
-                60: '55 – 64',
-                70: '65+'
-            }
+                20: '20',
+                30: '30',
+                40: '40',
+                50: '50',
+                60: '60',
+                70: '70'
+            },
+            updatemode='drag'
         ),
     ]
 )
@@ -159,13 +137,13 @@ age_group = dbc.FormGroup(
 demographics = dbc.Card([
     dbc.CardHeader("Demographics"),
     dbc.CardBody(
-		dbc.Form([
-			sex,
-			height,
-			weight,
-			age_group,
-			activity_level
-		])
+        dbc.Form([
+            sex,
+            height,
+            weight,
+            age_group,
+            activity_level
+        ])
     )
 ], color="light", outline=True)
 
@@ -173,11 +151,10 @@ demographics = dbc.Card([
 experience = dbc.Card([
     dbc.CardHeader("Baseline"),
     dbc.CardBody(
-		dbc.Form([
-			personal_history,
-			body_pain_checklist,
-			previous_pt
-		])
+        dbc.Form([
+            personal_history,
+            previous_pt
+        ])
     )
 ], color="light", outline=True)
 
@@ -217,7 +194,11 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             experience,
-            dbc.Button("Submit", id='profile-submit-button', color="primary", block=True)
+#             html.A(
+                dbc.Button("Submit", id='profile-submit-button', color="primary", block=True),
+#                 href='/diary'
+#             ),
+            html.Div(id='profile-success-message')
             ], 
             width=12
         )
@@ -239,3 +220,34 @@ layout = dbc.Container([
 def disable_tabs_while_recording(sex, height, weight, activity, age):
     return sex, height, weight, activity, age
 
+
+@app.callback(Output('profile-success-message', 'children'),
+              [Input('profile-submit-button', 'n_clicks')],
+              [State('user-id', 'data'),
+               State('sex-radio', 'value'),
+               State('height-slider', 'value'),
+               State('weight-slider', 'value'),
+               State('activity-slider', 'value'),
+               State('age-slider', 'value'),
+               State('personal-experience-text', 'value'),
+               State('previous-pt-radio', 'value')
+              ])
+def save_profile_to_sql(n_clicks, user, sex, height, weight, activity, age, experience, pt):
+    if n_clicks:
+        user_hash = user['user-hash']
+        payload = json.dumps({
+            "sex": sex,
+            "height": height,
+            "weight": weight,
+            "activity": activity,
+            "age": age,
+            "experience": experience,
+            "previous_pt": pt
+        })
+        sql_statement = "INSERT INTO profiles (user_hash, profile) VALUES ('{user_hash}', '{payload}')".format(
+            user_hash=user_hash, 
+            payload=payload
+        )
+        sql.insert(sql_statement)
+        sql.insert("INSERT INTO profiles (user_hash) VALUES ('donny2')")
+        return html.P(sql_statement)

@@ -67,6 +67,14 @@ controls = dbc.Card([
 
 
 layout = dbc.Container([
+    dbc.Alert(
+            ["It's been a while since you updated your pain diary - ",
+            html.A("care to share?", href="/diary", className="alert-link")],
+            id="alert-no-fade",
+            dismissable=True,
+            fade=False,
+            color='info'
+    ),
     dbc.Row([
         dbc.Col([
             dbc.Row([
