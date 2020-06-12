@@ -24,7 +24,7 @@ class Sql:
         with conn.cursor() as cursor:
             cursor.execute(query)
             for row in cursor.fetchall():
-                yield row  
+                yield row
 
     def _execute(self, query, return_results=False):
         conn = None
@@ -36,11 +36,10 @@ class Sql:
             )
 
             if return_results:
-                for item in self._return_records(conn, query):
-                    yield item
+                return [i for i in self._return_records(conn, query)]
             else:
                 self._commit_records(conn, query)
-                yield '... Executed!'
+                return '... Executed!'
                 
         except (Exception, psycopg2.DatabaseError) as error:
             print("Error while creating PostgreSQL table:", error)
@@ -53,5 +52,5 @@ class Sql:
         return self._execute(query, return_results=True)
 
     def insert(self, query):
-        return next(self._execute(query, return_results=False))  # terrible hack!!
+        return self._execute(query, return_results=False)
 

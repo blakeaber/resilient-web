@@ -26,7 +26,7 @@ pain_areas = [
 
 pain_level = dbc.FormGroup(
     [
-        dbc.Label("Current Pain Level", html_for="pain-slider"),
+        dbc.Label("What Is Your Current Pain Level?", html_for="pain-slider"),
         dcc.Slider(
             id="pain-slider", 
             min=0, 
@@ -47,7 +47,7 @@ pain_level = dbc.FormGroup(
 
 pain_increase_checklist = dbc.FormGroup(
     [
-        dbc.Label("Getting Worse", html_for="pain-increase-checklist"),
+        dbc.Label("Anything Getting Worse?", html_for="pain-increase-checklist"),
         dbc.Checklist(
             id="pain-increase-checklist",
             options=[
@@ -62,7 +62,7 @@ pain_increase_checklist = dbc.FormGroup(
 
 pain_decrease_checklist = dbc.FormGroup(
     [
-        dbc.Label("Getting Better", html_for="pain-decrease-checklist"),
+        dbc.Label("Anything Getting Better?", html_for="pain-decrease-checklist"),
         dbc.Checklist(
             id="pain-decrease-checklist",
             options=[
@@ -100,10 +100,7 @@ layout = dbc.Container([
     ], justify="center"),
     dbc.Row([    
         dbc.Col([
-            html.A(
-                dbc.Button("Submit", id='diary-submit-button', color="primary", block=True),
-                href='/exercise'
-            )
+            dbc.Button("Submit", id='diary-submit-button', color="primary", block=True)
         ], 
         width=12),
     ], justify="center"),
