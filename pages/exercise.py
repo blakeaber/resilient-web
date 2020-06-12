@@ -15,11 +15,11 @@ from app import (
 exercises = dbc.Card(
     dbc.CardHeader([
         dbc.Tabs(
-            [
-                dbc.Tab(id='exercise-tab-1', label="1. Couch Stretch", tab_id=1),
-                dbc.Tab(id='exercise-tab-2', label="2. Inch Worm", tab_id=7),    
-                dbc.Tab(id='exercise-tab-3', label="3. Kneeling Windmill", tab_id=11)
-            ],
+#             [
+#                 dbc.Tab(id='exercise-tab-1', label='Exercise 1', tab_id=1),
+#                 dbc.Tab(id='exercise-tab-2', label='Exercise 2', tab_id=2),    
+#                 dbc.Tab(id='exercise-tab-3', label='Exercise 3', tab_id=3)
+#             ],
             id="exercise-tabs",
             active_tab=1,
             card=True
@@ -75,6 +75,7 @@ layout = dbc.Container([
             fade=False,
             color='info'
     ),
+    dcc.Store(id='exercises-sql', storage_type='session'),
     dbc.Row([
         dbc.Col([
             dbc.Row([
@@ -89,16 +90,38 @@ layout = dbc.Container([
 ])
 
 
+@app.callback(Output('exercises-sql', 'data'),
+              [Input('url', 'pathname')])
+def get_exercises_from_sql(pathname):
+    if pathname == '/exercise':
+        return sql.select('SELECT * FROM VIMEO_VIDEOS ORDER BY NAME ASC LIMIT 3')
+
+
+@app.callback(Output('exercise-tabs', 'children'),
+              [Input('url', 'pathname'),
+               Input('exercises-sql', 'data')])
+def display_page(pathname, exercise_data):
+    if (pathname == '/exercise') and exercise_data:
+        return [
+            dbc.Tab(id='exercise-tab-1', label=exercise_data[0][1], tab_id=1),
+            dbc.Tab(id='exercise-tab-2', label=exercise_data[1][1], tab_id=2),    
+            dbc.Tab(id='exercise-tab-3', label=exercise_data[2][1], tab_id=3)
+        ]
+
+
 @app.callback([Output('instructional-video', 'src'),
                Output('goal-instruction', 'children')],
-              [Input('exercise-tabs', 'active_tab')])
-def display_exercise_video(active_tab):
-    if active_tab == 1:
-        return 'https://player.vimeo.com/video/112866269', '30 seconds on each side'
-    elif active_tab == 7:
-        return 'https://player.vimeo.com/video/70591644', '2 sets of 5 on each side'
-    elif active_tab == 11:
-        return 'https://player.vimeo.com/video/347119375', '2 sets of 10 on each side'
+              [Input('exercise-tabs', 'active_tab')],
+              [State('exercises-sql', 'data')])
+def display_exercise_video(active_tab, exercise_data):
+    if not exercise_data:
+        return None
+    elif active_tab == 1:
+        return exercise_data[0][2], exercise_data[0][3]
+    elif active_tab == 2:
+        return exercise_data[1][2], exercise_data[1][3]
+    elif active_tab == 3:
+        return exercise_data[2][2], exercise_data[2][3]
     else:
         return None
 
@@ -127,7 +150,7 @@ def disable_tabs_while_recording(is_recording):
               [State('btn-start-recording', 'active')])
 def disable_tabs_while_recording(timer, is_recording):
     if is_recording:
-	    return timer
+        return timer
 
 
 @app.callback([Output('btn-start-recording', 'children'),
