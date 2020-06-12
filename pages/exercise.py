@@ -67,14 +67,7 @@ controls = dbc.Card([
 
 
 layout = dbc.Container([
-    dbc.Alert(
-            ["It's been a while since you updated your pain diary - ",
-            html.A("care to share?", href="/diary", className="alert-link")],
-            id="alert-no-fade",
-            dismissable=True,
-            fade=False,
-            color='info'
-    ),
+    html.Div(id='record-pain-reminder'),
     dcc.Store(id='exercises-sql', storage_type='session'),
     dbc.Row([
         dbc.Col([
@@ -95,6 +88,27 @@ layout = dbc.Container([
 def get_exercises_from_sql(pathname):
     if pathname == '/exercise':
         return sql.select('SELECT * FROM VIMEO_VIDEOS ORDER BY NAME ASC LIMIT 3')
+
+
+@app.callback(Output('record-pain-reminder', 'children'),
+              [Input('url', 'pathname')],
+              [State('user-id', 'data'),])
+def remind_to_record_pain(pathname, user):
+    if pathname == '/exercise':
+        user_hash = user['user-hash']
+        last_pain_record = sql.select(
+            f"SELECT max(unixtime) FROM pain_levels where user_hash = '{user_hash}'"
+        )[0][0]
+
+        if not last_pain_record or (time.time() - last_pain_record > 86400):
+            return dbc.Alert(
+                ["It's been a while since you updated your pain diary - ",
+                html.A("care to share?", href="/diary", className="alert-link")],
+                id="alert-no-fade",
+                dismissable=True,
+                fade=False,
+                color='info'
+            )
 
 
 @app.callback(Output('exercise-tabs', 'children'),
