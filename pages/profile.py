@@ -237,7 +237,7 @@ def display_page(pathname, user):
                 SELECT max(unixtime) 
                 FROM profiles WHERE user_hash = '{user_hash}');
         """)[0][0]  # terrible!!!
-        print('########', data)
+
         if data:
             return (
                 data['sex'], data['height'], data['weight'], 
