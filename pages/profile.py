@@ -194,11 +194,8 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             experience,
-#             html.A(
-                dbc.Button("Submit", id='profile-submit-button', color="primary", block=True),
-#                 href='/diary'
-#             ),
-            html.Div(id='profile-success-message')
+            html.Div(id='profile-submit-status'),
+            dbc.Button("Submit", id='profile-submit-button', color="primary", block=True)
             ], 
             width=12
         )
@@ -221,7 +218,35 @@ def disable_tabs_while_recording(sex, height, weight, activity, age):
     return sex, height, weight, activity, age
 
 
-@app.callback(Output('profile-success-message', 'children'),
+@app.callback([Output('sex-radio', 'value'),
+               Output('height-slider', 'value'),
+               Output('weight-slider', 'value'),
+               Output('activity-slider', 'value'),
+               Output('age-slider', 'value'),
+               Output('personal-experience-text', 'value'),
+               Output('previous-pt-radio', 'value')],
+              [Input('url', 'pathname')],
+              [State('user-id', 'data')])
+def display_page(pathname, user):
+    if pathname == '/profile':
+        user_hash = user['user-hash']
+        data = sql.select(f"""
+            SELECT profile FROM profiles 
+            WHERE user_hash = '{user_hash}'
+            AND unixtime = (
+                SELECT max(unixtime) 
+                FROM profiles WHERE user_hash = '{user_hash}');
+        """)[0][0]  # terrible!!!
+        print('########', data)
+        if data:
+            return (
+                data['sex'], data['height'], data['weight'], 
+                data['activity'], data['age'], data['experience'], 
+                data['previous_pt']
+            )
+
+
+@app.callback(Output('profile-submit-status', 'children'),
               [Input('profile-submit-button', 'n_clicks')],
               [State('user-id', 'data'),
                State('sex-radio', 'value'),
@@ -230,12 +255,12 @@ def disable_tabs_while_recording(sex, height, weight, activity, age):
                State('activity-slider', 'value'),
                State('age-slider', 'value'),
                State('personal-experience-text', 'value'),
-               State('previous-pt-radio', 'value')
-              ])
+               State('previous-pt-radio', 'value')])
 def save_profile_to_sql(n_clicks, user, sex, height, weight, activity, age, experience, pt):
     if n_clicks:
+        unixtime = time.time()
         user_hash = user['user-hash']
-        payload = json.dumps({
+        data = {
             "sex": sex,
             "height": height,
             "weight": weight,
@@ -243,11 +268,24 @@ def save_profile_to_sql(n_clicks, user, sex, height, weight, activity, age, expe
             "age": age,
             "experience": experience,
             "previous_pt": pt
-        })
-        sql_statement = "INSERT INTO profiles (user_hash, profile) VALUES ('{user_hash}', '{payload}')".format(
-            user_hash=user_hash, 
-            payload=payload
-        )
+        }
+        
+        if not all(data.values()):  # all values must be filled in
+            return html.H5(
+                'Please fill in all data fields to continue :)', 
+                style={'text-align': 'center', 'color': 'red'}
+            )
+        else:
+            data['experience'] = data['experience'].replace("'", "''")
+
+        payload = json.dumps(data)
+        sql_statement = f"""
+           INSERT INTO profiles (user_hash, profile, unixtime) 
+           VALUES ('{user_hash}', '{payload}', {unixtime})
+           """
         sql.insert(sql_statement)
-        sql.insert("INSERT INTO profiles (user_hash) VALUES ('donny2')")
-        return html.P(sql_statement)
+        return html.H5(
+            'Got it - thanks so much!', 
+            style={'text-align': 'center', 'color': 'green'}
+        )
+

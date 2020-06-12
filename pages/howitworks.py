@@ -77,7 +77,7 @@ the_solution = dbc.Container([
 	]
 )
 
-call_to_action = jumbotron = dbc.Jumbotron(
+call_to_action = dbc.Jumbotron(
     [
         html.H1("Address body pain anywhere, instantly"),
         html.P(
