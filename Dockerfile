@@ -14,4 +14,5 @@ ENV RDS_ENDPOINT ***REMOVED***
 ENV RDS_PORT 5432
 
 # https://pythonspeed.com/articles/gunicorn-in-docker/
-CMD ["gunicorn", "-w", "5", "--bind", "0.0.0.0:5000", "--reload", "index:server"]
+# CMD ["gunicorn", "-w", "5", "--bind", "0.0.0.0:5000", "--reload", "index:server"]
+CMD ["gunicorn", "-w", "5", "--bind", "0.0.0.0:5000", "index:server"]
