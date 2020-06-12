@@ -125,7 +125,7 @@ def verify_login(n_clicks, email, password):
 
 if __name__ == '__main__':
     app.run_server(
-        host='localhost',
+        host='0.0.0.0',
         port=5000,
         debug=True
     )
