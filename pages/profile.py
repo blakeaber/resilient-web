@@ -104,7 +104,7 @@ activity_level = dbc.FormGroup(
             step=1, 
             marks={
                 0: 'Sedentary',
-                5: 'Daily Exercise',
+                5: 'Exercise Daily',
                 10: 'Olympic Athlete'
             },
             updatemode='drag'
@@ -215,6 +215,9 @@ layout = dbc.Container([
                Input('activity-slider', 'value'),
                Input('age-slider', 'value')])
 def disable_tabs_while_recording(sex, height, weight, activity, age):
+    height_remainder = height % 12
+    height_in_feet = height - height_remainder
+    old_english_height = '{feet}ft {inches}in'.format(feet=height_in_feet, inches=height_remainder)
     return sex, height, weight, activity, age
 
 
