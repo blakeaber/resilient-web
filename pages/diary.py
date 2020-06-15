@@ -30,16 +30,16 @@ pain_level = dbc.FormGroup(
         dbc.Label("What Is Your Current Pain Level?", html_for="pain-slider"),
         dcc.Slider(
             id="pain-slider", 
-            min=1, 
-            max=11, 
+            min=-1, 
+            max=10, 
             step=1, 
             marks={
-                1: 'No Pain',
-                3: 'Mild',
-                5: 'Moderate',
-                7: 'Severe',
-                9: 'Very Severe',
-                11: 'Worst Pain Possible'
+                0: 'No Pain',
+                2: 'Mild',
+                4: 'Moderate',
+                6: 'Severe',
+                8: 'Very Severe',
+                10: 'Worst Pain Possible'
             }
         ),
     ]
@@ -80,9 +80,6 @@ pain_decrease_checklist = dbc.FormGroup(
 experience = dbc.Card([
     dbc.CardHeader("Pain Diary"),
     dbc.CardBody([
-        html.H1([
-            dbc.Badge(id='pain-display', pill=True, color="success", className="ml-1")
-        ], style={'text-align': 'center'}),
 		dbc.Form([
 		    pain_level
 		])
@@ -109,14 +106,6 @@ layout = dbc.Container([
 ])
 
 
-@app.callback(Output('pain-display', 'children'),
-              [Input('pain-slider', 'value')])
-def disable_tabs_while_recording(value):
-    if value:
-        return value
-
-
-
 @app.callback(Output('diary-submit-status', 'children'),
               [Input('diary-submit-button', 'n_clicks')],
               [State('user-id', 'data'),
@@ -133,7 +122,7 @@ def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse)
             "getting_worse": getting_worse
         }
         
-        if not data['pain_level']:  # pain must be filled in
+        if data['pain_level'] < 0:  # pain must be filled in
             return html.H5(
                 'Please fill in all data fields to continue :)', 
                 style={'text-align': 'center', 'color': 'red'}
