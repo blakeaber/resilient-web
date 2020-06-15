@@ -15,6 +15,7 @@ from app import (
     server
 )
 from pages import login, howitworks, profile, diary, exercise, utils
+from onboarding import steps
 
 
 navbar = dbc.NavbarSimple(
@@ -54,6 +55,8 @@ def display_page(pathname, user):
         return profile.layout
     elif pathname == '/howitworks':
         return howitworks.layout
+    elif pathname == '/onboard':
+        return steps.layout
     elif pathname == '/exercise':
         return exercise.layout
     elif pathname == '/profile':

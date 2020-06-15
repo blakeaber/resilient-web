@@ -88,14 +88,19 @@ experience = dbc.Card([
 
 
 
-layout = dbc.Container([
+onboard_layout = dbc.Container([
     dbc.Row([
         dbc.Col(experience, width=12),
     ], justify="center"),
     dbc.Row([
         dbc.Col(pain_increase_checklist, width=6),
         dbc.Col(pain_decrease_checklist, width=6)
-    ], justify="center"),
+    ], justify="center")
+])
+
+
+layout = dbc.Container([
+    onboard_layout,
     dbc.Row([    
         dbc.Col([
             html.Div(id='diary-submit-status'),

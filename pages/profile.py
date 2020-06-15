@@ -184,7 +184,7 @@ user_confirmation = dbc.Card([
 ], color="light", outline=True)
 
 
-layout = dbc.Container([
+onboard_layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             demographics
@@ -192,14 +192,21 @@ layout = dbc.Container([
         dbc.Col(user_confirmation, width=3)
     ], justify="center"),
     dbc.Row([
+        dbc.Col(experience, width=12)
+    ], justify="center")
+])
+
+
+
+layout = dbc.Container([
+    onboard_layout,
+    dbc.Row([
         dbc.Col([
-            experience,
             html.Div(id='profile-submit-status'),
             dbc.Button("Submit", id='profile-submit-button', color="primary", block=True)
             ], 
             width=12
         )
-        
     ], justify="center")
 ])
 
