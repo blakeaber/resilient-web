@@ -30,16 +30,16 @@ pain_level = dbc.FormGroup(
         dbc.Label("What Is Your Current Pain Level?", html_for="pain-slider"),
         dcc.Slider(
             id="pain-slider", 
-            min=0, 
-            max=10, 
+            min=1, 
+            max=11, 
             step=1, 
             marks={
-                0: 'No Pain',
-                2: 'Mild',
-                4: 'Moderate',
-                6: 'Severe',
-                8: 'Very Severe',
-                10: 'Worst Pain Possible'
+                1: 'No Pain',
+                3: 'Mild',
+                5: 'Moderate',
+                7: 'Severe',
+                9: 'Very Severe',
+                11: 'Worst Pain Possible'
             }
         ),
     ]
