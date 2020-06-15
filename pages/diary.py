@@ -122,7 +122,7 @@ def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse)
             "getting_worse": getting_worse
         }
         
-        if data['pain_level'] < 0:  # pain must be filled in
+        if (data['pain_level'] is None) or (data['pain_level'] < 0):  # pain must be filled in
             return html.H5(
                 'Please fill in all data fields to continue :)', 
                 style={'text-align': 'center', 'color': 'red'}

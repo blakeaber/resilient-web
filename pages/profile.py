@@ -234,7 +234,7 @@ def disable_tabs_while_recording(sex, height, weight, activity, age):
               [Input('url', 'pathname')],
               [State('user-id', 'data')])
 def display_page(pathname, user):
-    if pathname == '/profile':
+    if user.get('user-hash'):
         user_hash = user['user-hash']
         data = sql.select(f"""
             SELECT profile FROM profiles 
@@ -242,16 +242,17 @@ def display_page(pathname, user):
             AND unixtime = (
                 SELECT max(unixtime) 
                 FROM profiles WHERE user_hash = '{user_hash}');
-        """)[0][0]  # terrible!!!
+        """)
 
         if data:
+            data = data[0][0]  # terrible!!!
             return (
                 data['sex'], data['height'], data['weight'], 
                 data['activity'], data['age'], data['experience'], 
                 data['previous_pt']
             )
 
-    return [None] * 7
+    return [None, 54, 50, None, None, None, None]
 
 
 @app.callback(Output('profile-submit-status', 'children'),
