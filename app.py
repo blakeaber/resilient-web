@@ -6,15 +6,12 @@ from dash.dependencies import Input, Output, State, MATCH, ALL, ClientsideFuncti
 
 import os
 import time
+import json
 from src.sql_model import Sql
 
 
 # external JavaScript files
 external_scripts = [
-    'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs',
-    'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet',
-	'https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/js/uikit.min.js',
-	'https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/js/uikit-icons.min.js',
 	'https://www.WebRTC-Experiment.com/RecordRTC.js',
 	'https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js',
 	'https://player.vimeo.com/api/player.js',

@@ -7,11 +7,13 @@ class Sql:
     """Model component of MVC architecture"""
 
     def __init__(self, user, password, host, port, database):
-        self.user = user
-        self.password = password
-        self.host = host
-        self.port = port
-        self.database = database
+        self.db_settings = {
+			'user': user,
+			'password': password,
+			'host': host,
+			'port': port,
+			'database': database        
+        }
 
     def _commit_records(self, conn, query):
         with conn.cursor() as cursor:
@@ -22,29 +24,25 @@ class Sql:
         with conn.cursor() as cursor:
             cursor.execute(query)
             for row in cursor.fetchall():
-                yield row  
+                yield row
 
     def _execute(self, query, return_results=False):
         conn = None
 
         try:
             conn = psycopg2.connect(
-                user=self.user,
-                password=self.password,
-                host=self.host,
-                port=self.port,
-                database=self.database,
-                cursor_factory=extras.DictCursor
+                cursor_factory=extras.DictCursor,
+                **self.db_settings
             )
 
             if return_results:
-                for item in self._return_records(conn, query):
-                    yield item
+                return [i for i in self._return_records(conn, query)]
             else:
                 self._commit_records(conn, query)
+                return '... Executed!'
                 
         except (Exception, psycopg2.DatabaseError) as error:
-            print ("Error while creating PostgreSQL table:", error)
+            print("Error while creating PostgreSQL table:", error)
 
         finally:
             if conn:

@@ -81,13 +81,18 @@ function clickStartButton(is_active) {
 
 
 // Events on clicking stop button
-function clickStopButton(is_active) {
+function clickStopButton(is_active, user_data, exercise_id) {
     if (is_active) {
 		var video = document.getElementById('feedback-video');
 		var percentage = document.getElementById('percentage');
 
+        let current_time = Date.now()
+        let user_hash = user_data['user-hash']
+
+		// Re-enable start recording button
 		document.getElementById('btn-stop-recording').disabled = true;
 		document.getElementById('btn-start-recording').disabled = false;
+
 		recorder.stopRecording().then(function(){
 			var Blob = recorder.getBlob();
 			Blob.then(function(data){
@@ -100,7 +105,7 @@ function clickStopButton(is_active) {
 					// var objKey = 'video/user/web/'+random+'.'+data.type.split('/')[1];
 		
 					// otherwise...
-					var objKey = 'video/user/web/'+random+'.webm';
+                    var objKey = `video/user/web/${user_hash}-${exercise_id}-${current_time}.webm`;
 		
 					var params = {
 						Key: objKey,
