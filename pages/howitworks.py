@@ -58,7 +58,7 @@ the_solution = dbc.Container([
 				html.Img(src="./assets/FeelBetter.png", alt="Generic placeholder image"),
 				html.Hr(className='featurete-divider'),
 				html.H2('Feel Better'),
-				html.P("By conveniently addressing physical pain at home using only a smartphone."),
+				html.P("By conveniently addressing physical pain at home with no special hardware."),
 # 				html.P(
 # 					dbc.Button('View details >>', href='#')
 # 				)
@@ -77,19 +77,19 @@ the_solution = dbc.Container([
 	]
 )
 
-call_to_action = jumbotron = dbc.Jumbotron(
+call_to_action = dbc.Jumbotron(
     [
         html.H1("Address body pain anywhere, instantly"),
         html.P(
-            "Our system is a digital therapeutic for musculoskeletal pain that "
-            "provides AI-assisted, real-time feeback",
+            "Our system is a digital therapeutic platform for musculoskeletal pain that "
+            "will provide AI-assisted, real-time feedback",
             className="lead"
         ),
-        html.P(dbc.Button("Try It Out", href='/programs', color="primary", size='lg'), className="lead"),
+        html.P(dbc.Button("Try It Out", href='/profile', color="primary", size='lg'), className="lead"),
     ]
 )
 
-final_chance = dbc.Button("Get Started", href='/programs', color="primary", size='lg', block=True)
+final_chance = dbc.Button("Get Started", href='/profile', color="primary", size='lg', block=True)
 
 featurettes = dbc.Container([
 	dbc.Row([
