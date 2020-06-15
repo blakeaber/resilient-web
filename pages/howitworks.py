@@ -81,8 +81,8 @@ call_to_action = dbc.Jumbotron(
     [
         html.H1("Address body pain anywhere, instantly"),
         html.P(
-            "Our system is a digital therapeutic for musculoskeletal pain that "
-            "will provide AI-assisted, real-time feeback",
+            "Our system is a digital therapeutic platform for musculoskeletal pain that "
+            "will provide AI-assisted, real-time feedback",
             className="lead"
         ),
         html.P(dbc.Button("Try It Out", href='/profile', color="primary", size='lg'), className="lead"),
