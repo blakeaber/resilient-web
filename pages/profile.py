@@ -51,7 +51,7 @@ sex = dbc.FormGroup(
             options=[
                 {'label': 'Male', 'value': 'M'},
                 {'label': 'Female', 'value': 'F'},
-                {'label': 'Other', 'value': '-'}
+                {'label': 'N/A', 'value': '-'}
             ],
             inline=True
         )
@@ -215,10 +215,13 @@ layout = dbc.Container([
                Input('activity-slider', 'value'),
                Input('age-slider', 'value')])
 def disable_tabs_while_recording(sex, height, weight, activity, age):
-    height_remainder = height % 12
-    height_in_feet = height - height_remainder
-    old_english_height = '{feet}ft {inches}in'.format(feet=height_in_feet, inches=height_remainder)
-    return sex, height, weight, activity, age
+    display_height = height
+    if height:
+	    height_remainder = height % 12
+	    height_in_feet = int((height - height_remainder) / 12)
+	    display_height = '{feet}ft {inches}in'.format(feet=height_in_feet, inches=height_remainder)
+
+    return sex, display_height, weight, activity, age
 
 
 @app.callback([Output('sex-radio', 'value'),
@@ -247,6 +250,8 @@ def display_page(pathname, user):
                 data['activity'], data['age'], data['experience'], 
                 data['previous_pt']
             )
+
+    return [None] * 7
 
 
 @app.callback(Output('profile-submit-status', 'children'),
