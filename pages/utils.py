@@ -1,5 +1,4 @@
 
-import hashlib
 from urllib.parse import urlparse, parse_qs
 
 
@@ -22,9 +21,3 @@ def split_list_into_chunks(input_list, chunk_size):
         input_list[i:i + chunk_size] 
         for i in range(0, len(input_list), chunk_size)
     ]
-
-def generate_password_for_user(username, salt):
-    salted = username + salt
-    md5 = hashlib.md5(salted.encode('utf-8'))
-    hashed = md5.hexdigest()
-    return hashed[-8:]

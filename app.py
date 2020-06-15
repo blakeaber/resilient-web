@@ -7,6 +7,7 @@ from dash.dependencies import Input, Output, State, MATCH, ALL, ClientsideFuncti
 import os
 import time
 import json
+import hashlib
 from src.sql_model import Sql
 
 
