@@ -51,7 +51,7 @@ sex = dbc.FormGroup(
             options=[
                 {'label': 'Male', 'value': 'M'},
                 {'label': 'Female', 'value': 'F'},
-                {'label': 'Other', 'value': '-'}
+                {'label': 'N/A', 'value': '-'}
             ],
             inline=True
         )
@@ -184,7 +184,7 @@ user_confirmation = dbc.Card([
 ], color="light", outline=True)
 
 
-layout = dbc.Container([
+onboard_layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             demographics
@@ -192,14 +192,21 @@ layout = dbc.Container([
         dbc.Col(user_confirmation, width=3)
     ], justify="center"),
     dbc.Row([
+        dbc.Col(experience, width=12)
+    ], justify="center")
+])
+
+
+
+layout = dbc.Container([
+    onboard_layout,
+    dbc.Row([
         dbc.Col([
-            experience,
             html.Div(id='profile-submit-status'),
             dbc.Button("Submit", id='profile-submit-button', color="primary", block=True)
             ], 
             width=12
         )
-        
     ], justify="center")
 ])
 
@@ -215,10 +222,13 @@ layout = dbc.Container([
                Input('activity-slider', 'value'),
                Input('age-slider', 'value')])
 def disable_tabs_while_recording(sex, height, weight, activity, age):
-    height_remainder = height % 12
-    height_in_feet = height - height_remainder
-    old_english_height = '{feet}ft {inches}in'.format(feet=height_in_feet, inches=height_remainder)
-    return sex, height, weight, activity, age
+    display_height = height
+    if height:
+	    height_remainder = height % 12
+	    height_in_feet = int((height - height_remainder) / 12)
+	    display_height = '{feet}ft {inches}in'.format(feet=height_in_feet, inches=height_remainder)
+
+    return sex, display_height, weight, activity, age
 
 
 @app.callback([Output('sex-radio', 'value'),
@@ -231,7 +241,7 @@ def disable_tabs_while_recording(sex, height, weight, activity, age):
               [Input('url', 'pathname')],
               [State('user-id', 'data')])
 def display_page(pathname, user):
-    if pathname == '/profile':
+    if user.get('user-hash'):
         user_hash = user['user-hash']
         data = sql.select(f"""
             SELECT profile FROM profiles 
@@ -239,56 +249,15 @@ def display_page(pathname, user):
             AND unixtime = (
                 SELECT max(unixtime) 
                 FROM profiles WHERE user_hash = '{user_hash}');
-        """)[0][0]  # terrible!!!
+        """)
 
         if data:
+            data = data[0][0]  # terrible!!!
             return (
                 data['sex'], data['height'], data['weight'], 
                 data['activity'], data['age'], data['experience'], 
                 data['previous_pt']
             )
 
-
-@app.callback(Output('profile-submit-status', 'children'),
-              [Input('profile-submit-button', 'n_clicks')],
-              [State('user-id', 'data'),
-               State('sex-radio', 'value'),
-               State('height-slider', 'value'),
-               State('weight-slider', 'value'),
-               State('activity-slider', 'value'),
-               State('age-slider', 'value'),
-               State('personal-experience-text', 'value'),
-               State('previous-pt-radio', 'value')])
-def save_profile_to_sql(n_clicks, user, sex, height, weight, activity, age, experience, pt):
-    if n_clicks:
-        unixtime = time.time()
-        user_hash = user['user-hash']
-        data = {
-            "sex": sex,
-            "height": height,
-            "weight": weight,
-            "activity": activity,
-            "age": age,
-            "experience": experience,
-            "previous_pt": pt
-        }
-        
-        if not all(data.values()):  # all values must be filled in
-            return html.H5(
-                'Please fill in all data fields to continue :)', 
-                style={'text-align': 'center', 'color': 'red'}
-            )
-        else:
-            data['experience'] = data['experience'].replace("'", "''")
-
-        payload = json.dumps(data)
-        sql_statement = f"""
-           INSERT INTO profiles (user_hash, profile, unixtime) 
-           VALUES ('{user_hash}', '{payload}', {unixtime})
-           """
-        sql.insert(sql_statement)
-        return html.H5(
-            'Got it - thanks so much!', 
-            style={'text-align': 'center', 'color': 'green'}
-        )
+    return [None, 54, 50, None, None, None, None]
 

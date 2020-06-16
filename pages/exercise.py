@@ -15,11 +15,6 @@ from app import (
 exercises = dbc.Card(
     dbc.CardHeader([
         dbc.Tabs(
-#             [
-#                 dbc.Tab(id='exercise-tab-1', label='Exercise 1', tab_id=1),
-#                 dbc.Tab(id='exercise-tab-2', label='Exercise 2', tab_id=2),    
-#                 dbc.Tab(id='exercise-tab-3', label='Exercise 3', tab_id=3)
-#             ],
             id="exercise-tabs",
             active_tab=1,
             card=True
@@ -31,12 +26,16 @@ exercises = dbc.Card(
 videos = dbc.Card(
     dbc.CardBody([
         html.Div([
-            html.Video(id='feedback-video', className='embed-responsive-item'),
+            html.Video(id='feedback-video', className='embed-responsive-item', controls=True),
             html.Iframe(id='instructional-video', className='embed-responsive-item')
             ],
             className='embed-responsive embed-responsive-16by9'
         ),
-        html.P(id='percentage')
+        html.Br(),
+        html.H5(
+            id='percentage',
+            style={'text-align': 'center', 'color': 'green'}
+        )
     ])
 , color="light", outline=True)
 
@@ -86,7 +85,7 @@ layout = dbc.Container([
 @app.callback(Output('exercises-sql', 'data'),
               [Input('url', 'pathname')])
 def get_exercises_from_sql(pathname):
-    if pathname == '/exercise':
+    if pathname in ('/', '/exercise'):
         return sql.select('SELECT * FROM VIMEO_VIDEOS ORDER BY NAME ASC LIMIT 3')
 
 
@@ -94,20 +93,21 @@ def get_exercises_from_sql(pathname):
               [Input('url', 'pathname')],
               [State('user-id', 'data'),])
 def remind_to_record_pain(pathname, user):
-    if pathname == '/exercise':
+    if pathname in ('/', '/exercise'):
         user_hash = user['user-hash']
         last_pain_record = sql.select(
             f"SELECT max(unixtime) FROM pain_levels where user_hash = '{user_hash}'"
         )[0][0]
 
         if not last_pain_record or (time.time() - last_pain_record > 86400):
-            return dbc.Alert(
-                ["It's been a while since you updated your pain diary - ",
-                html.A("care to share?", href="/diary", className="alert-link")],
-                id="alert-no-fade",
+            return dbc.Toast(
+                ["Care to share in the ",
+                dbc.Button("pain diary?", href="/diary", className="alert-link")],
+                id="pain-alert-reminder",
+                header="It's been a while...",
                 dismissable=True,
-                fade=False,
-                color='info'
+                icon="warning",
+                style={"position": "fixed", "top": 100, "right": 10, "width": 350, "z-index": "999"}
             )
 
 
@@ -115,7 +115,7 @@ def remind_to_record_pain(pathname, user):
               [Input('url', 'pathname'),
                Input('exercises-sql', 'data')])
 def display_page(pathname, exercise_data):
-    if (pathname == '/exercise') and exercise_data:
+    if pathname in ('/', '/exercise') and exercise_data:
         return [
             dbc.Tab(id='exercise-tab-1', label=exercise_data[0][1], tab_id=1),
             dbc.Tab(id='exercise-tab-2', label=exercise_data[1][1], tab_id=2),    
@@ -125,19 +125,22 @@ def display_page(pathname, exercise_data):
 
 @app.callback([Output('instructional-video', 'src'),
                Output('goal-instruction', 'children')],
-              [Input('exercise-tabs', 'active_tab')],
-              [State('exercises-sql', 'data')])
-def display_exercise_video(active_tab, exercise_data):
-    if not exercise_data:
-        return None
-    elif active_tab == 1:
-        return exercise_data[0][2], exercise_data[0][3]
-    elif active_tab == 2:
-        return exercise_data[1][2], exercise_data[1][3]
-    elif active_tab == 3:
-        return exercise_data[2][2], exercise_data[2][3]
-    else:
-        return None
+              [Input('url', 'pathname'),
+               Input('exercise-tabs', 'active_tab'),
+               Input('exercises-sql', 'data')])
+def display_exercise_video(pathname, active_tab, exercise_data):
+    if pathname in ('/', '/exercise'):
+        if not exercise_data:
+            return '', html.P('no data yet')
+        elif active_tab == 1:
+            return exercise_data[0][2], exercise_data[0][3]
+        elif active_tab == 2:
+            return exercise_data[1][2], exercise_data[1][3]
+        elif active_tab == 3:
+            return exercise_data[2][2], exercise_data[2][3]
+        else:
+            return '', html.P(active_tab)
+    return '', html.P('catch2')
 
 
 @app.callback([Output('exercise-tab-1', 'disabled'),
