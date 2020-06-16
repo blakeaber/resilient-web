@@ -123,12 +123,13 @@ def save_profile_to_sql(pathname, sex, height, weight, activity, age, experience
 
 
 @app.callback(Output('diary-complete', 'data'),
-              [Input('pain-slider', 'value'),
+              [Input('url', 'pathname'),
+               Input('pain-slider', 'value'),
                Input('pain-increase-checklist', 'value'),
                Input('pain-decrease-checklist', 'value')],
               [State('user-id', 'data'),
                State('profile-complete', 'data')])
-def save_diary_to_sql(pain_level, getting_better, getting_worse, user, profile_complete):
+def save_diary_to_sql(pathname, pain_level, getting_better, getting_worse, user, profile_complete):
     is_diary_complete = False
 
     def all_items_exist(data):
@@ -164,9 +165,10 @@ def save_diary_to_sql(pain_level, getting_better, getting_worse, user, profile_c
 
 @app.callback([Output('onboard-tab-3', 'disabled'),
                Output('onboard-tab-4', 'disabled')],
-              [Input('profile-complete', 'data'),
+              [Input('url', 'pathname'),
+               Input('profile-complete', 'data'),
                Input('diary-complete', 'data')])
-def save_diary_to_sql(profile_complete, diary_complete):
+def save_diary_to_sql(pathname, profile_complete, diary_complete):
     return not profile_complete, not diary_complete
 
 
