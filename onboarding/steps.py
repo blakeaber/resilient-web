@@ -11,11 +11,12 @@ from app import (
     time,
     json
     )
-from pages import profile, diary, exercise
+from pages import howitworks, profile, diary, exercise, utils
 
 
 INPUT_STEPS = [
     'Welcome',
+    'Intro',
     'Profile',
     'Pain Level',
     'Exercises'
@@ -43,13 +44,27 @@ def create_process_steps_from_list(input_steps):
     ]
 
 
-welcome = html.P('Welcome!!!')
+welcome = html.P('Welcome!')
+
+
+progress_alert = dbc.Toast(
+    "Please continue to the next step :)",
+    id="progress-alert",
+    header="Thanks for the info!",
+    is_open=True,
+    dismissable=True,
+    duration=4000,
+    icon="success",
+    style={"position": "fixed", "top": 10, "right": 10, "width": 350, "z-index": "999"}
+),
 
 
 layout = dbc.Container([
     html.Br(),
     dcc.Store(id='profile-complete', storage_type='memory'),
     dcc.Store(id='diary-complete', storage_type='memory'),
+    html.Div(id='profile-upload-alert'),
+    html.Div(id='diary-upload-alert'),
     dbc.Tabs(id='onboarding-steps', children=create_process_steps_from_list(INPUT_STEPS)),
     dbc.Row([
         dbc.Col(dbc.Progress(
@@ -69,20 +84,23 @@ layout = dbc.Container([
                Output('progress-steps', 'value')],
               [Input('onboarding-steps', 'active_tab')])
 def display_page(active_tab):
+    print('ACTIVE TAB:', active_tab)
     if not active_tab or (active_tab == 'onboard-1'):
         return welcome, 10
     elif active_tab == 'onboard-2':
-        return profile.onboard_layout, 32
+        return howitworks.layout, 27
     elif active_tab == 'onboard-3':
-        return diary.onboard_layout, 55
+        return profile.onboard_layout, 43
     elif active_tab == 'onboard-4':
-        return welcome, 78
-#         return exercise.layout
+        return diary.onboard_layout, 62
+    elif active_tab == 'onboard-5':
+        return welcome, 80
     else:
         return html.P('This indicates an error has occured :(')
 
 
-@app.callback(Output('profile-complete', 'data'),
+@app.callback([Output('profile-complete', 'data'),
+               Output('profile-upload-alert', 'children')],
               [Input('url', 'pathname'),
                Input('sex-radio', 'value'),
                Input('height-slider', 'value'),
@@ -94,6 +112,7 @@ def display_page(active_tab):
               [State('user-id', 'data')])
 def save_profile_to_sql(pathname, sex, height, weight, activity, age, experience, pt, user):
     is_profile_complete = False
+    alert_to_post = None
 
     data = {
         "sex": sex,
@@ -118,11 +137,13 @@ def save_profile_to_sql(pathname, sex, height, weight, activity, age, experience
         sql.insert(sql_statement)
 
         is_profile_complete = True
+        alert_to_post = progress_alert
     
-    return is_profile_complete
+    return is_profile_complete, alert_to_post
 
 
-@app.callback(Output('diary-complete', 'data'),
+@app.callback([Output('diary-complete', 'data'),
+               Output('diary-upload-alert', 'children')],
               [Input('url', 'pathname'),
                Input('pain-slider', 'value'),
                Input('pain-increase-checklist', 'value'),
@@ -131,6 +152,7 @@ def save_profile_to_sql(pathname, sex, height, weight, activity, age, experience
                State('profile-complete', 'data')])
 def save_diary_to_sql(pathname, pain_level, getting_better, getting_worse, user, profile_complete):
     is_diary_complete = False
+    alert_to_post = None
 
     def all_items_exist(data):
         has_pain_level = data['pain_level'] is not None
@@ -139,7 +161,7 @@ def save_diary_to_sql(pathname, pain_level, getting_better, getting_worse, user,
         return has_pain_level and has_better and has_worse
 
     if not profile_complete:
-        return is_diary_complete
+        return is_diary_complete, alert_to_post
     else:
         data = {
             "pain_level": pain_level,
@@ -159,16 +181,26 @@ def save_diary_to_sql(pathname, pain_level, getting_better, getting_worse, user,
             sql.insert(sql_statement)
 
             is_diary_complete = True
+            alert_to_post = progress_alert
     
-    return is_diary_complete
+    return is_diary_complete, alert_to_post
 
 
-@app.callback([Output('onboard-tab-3', 'disabled'),
-               Output('onboard-tab-4', 'disabled')],
+@app.callback([Output('onboard-tab-4', 'disabled'),
+               Output('onboard-tab-5', 'disabled')],
               [Input('url', 'pathname'),
                Input('profile-complete', 'data'),
                Input('diary-complete', 'data')])
 def save_diary_to_sql(pathname, profile_complete, diary_complete):
     return not profile_complete, not diary_complete
 
+
+@app.callback(Output('onboarding-steps', 'active_tab'),
+              [Input('url', 'href')],
+              [State('url', 'pathname')])
+def skip_to_tab_from_intro(href, pathname):
+    if pathname.startswith('/onboard'):
+        next_tab = utils.parse_url_parameters(href, param='next')
+        if next_tab:
+	        return f'onboard-{next_tab}'
 

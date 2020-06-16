@@ -21,10 +21,8 @@ from onboarding import steps
 navbar = dbc.NavbarSimple(
     id='nav-bar-id',
     children=[
-        dbc.NavLink("How It Works", href="/howitworks"),
-        dbc.NavLink("Profile", href="/profile"),
-        dbc.NavLink("Diary", href="/diary"),
-        dbc.NavLink("Exercises", href="/exercise")
+        dbc.NavLink("Exercises", href="/exercise"),
+        dbc.NavLink("Pain Diary", href="/diary")
     ],
     brand="Resilient.ai",
     brand_href="/",
@@ -52,15 +50,11 @@ def display_page(pathname, user):
     if not user or not user.get('email'):
         return login.layout
     elif user and (pathname == '/'):
-        return profile.layout
-    elif pathname == '/howitworks':
-        return howitworks.layout
+        return exercise.layout
     elif pathname == '/onboard':
         return steps.layout
     elif pathname == '/exercise':
         return exercise.layout
-    elif pathname == '/profile':
-        return profile.layout
     elif pathname == '/diary':
         return diary.layout
     else:
@@ -68,9 +62,11 @@ def display_page(pathname, user):
 
 
 @app.callback(Output('nav-bar-id', 'style'),
-              [Input('user-id', 'data')])
-def display_page(user):
-    if not user or not user.get('email'):
+              [Input('user-id', 'data'),
+               Input('url', 'pathname')])
+def display_page(user, pathname):
+    is_onboarding = (pathname == '/onboard')
+    if not user or not user.get('email') or is_onboarding:
         return {'display': 'none'}
     else:
         return {'display': 'block'}
