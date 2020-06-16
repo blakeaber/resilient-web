@@ -14,6 +14,7 @@ from app import (
 
 
 pain_areas = [
+    'No Change',
     'Neck',
     'Shoulders',
     'Wrists',
@@ -27,19 +28,19 @@ pain_areas = [
 
 pain_level = dbc.FormGroup(
     [
-        dbc.Label("What Is Your Current Pain Level?", html_for="pain-slider"),
+        dbc.Label("What Is Your Current Body Pain Level?", html_for="pain-slider"),
         dcc.Slider(
             id="pain-slider", 
-            min=1, 
-            max=11, 
+            min=0, 
+            max=10, 
             step=1, 
             marks={
-                1: 'No Pain',
-                3: 'Mild',
-                5: 'Moderate',
-                7: 'Severe',
-                9: 'Very Severe',
-                11: 'Worst Pain Possible'
+                0: 'No Pain',
+                2: 'Mild',
+                4: 'Moderate',
+                6: 'Severe',
+                8: 'Very Severe',
+                10: 'Worst Pain Possible'
             }
         ),
     ]
@@ -80,9 +81,6 @@ pain_decrease_checklist = dbc.FormGroup(
 experience = dbc.Card([
     dbc.CardHeader("Pain Diary"),
     dbc.CardBody([
-        html.H1([
-            dbc.Badge(id='pain-display', pill=True, color="success", className="ml-1")
-        ], style={'text-align': 'center'}),
 		dbc.Form([
 		    pain_level
 		])
@@ -91,14 +89,19 @@ experience = dbc.Card([
 
 
 
-layout = dbc.Container([
+onboard_layout = dbc.Container([
     dbc.Row([
         dbc.Col(experience, width=12),
     ], justify="center"),
     dbc.Row([
         dbc.Col(pain_increase_checklist, width=6),
         dbc.Col(pain_decrease_checklist, width=6)
-    ], justify="center"),
+    ], justify="center")
+])
+
+
+layout = dbc.Container([
+    onboard_layout,
     dbc.Row([    
         dbc.Col([
             html.Div(id='diary-submit-status'),
@@ -109,12 +112,28 @@ layout = dbc.Container([
 ])
 
 
-@app.callback(Output('pain-display', 'children'),
-              [Input('pain-slider', 'value')])
-def disable_tabs_while_recording(value):
-    if value:
-        return value
+success_alert = dbc.Toast(
+    'Thanks for the info!',
+    id="pain-success-alert",
+    header="Got It",
+    is_open=True,
+    dismissable=True,
+    duration=4000,
+    icon="success",
+    style={"position": "fixed", "top": 100, "right": 10, "width": 350, "z-index": "999"}
+)
 
+
+fail_alert = dbc.Toast(
+    "Please fill in all data fields to continue :)",
+    id="pain-failure-alert",
+    header="There was a problem...",
+    is_open=True,
+    dismissable=True,
+    duration=4000,
+    icon="danger",
+    style={"position": "fixed", "top": 100, "right": 10, "width": 350, "z-index": "999"}
+)
 
 
 @app.callback(Output('diary-submit-status', 'children'),
@@ -124,20 +143,23 @@ def disable_tabs_while_recording(value):
                State('pain-increase-checklist', 'value'),
                State('pain-decrease-checklist', 'value')])
 def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse):
+    def all_items_exist(data):
+        has_pain_level = data['pain_level'] is not None
+        has_better = any(data['getting_better'])
+        has_worse = any(data['getting_worse'])
+        return has_pain_level and has_better and has_worse
+
     if n_clicks:
         unixtime = time.time()
         user_hash = user['user-hash']
         data = {
             "pain_level": pain_level,
-            "getting_better": getting_better,
-            "getting_worse": getting_worse
+            "getting_better": getting_better or [],
+            "getting_worse": getting_worse or []
         }
         
-        if not data['pain_level']:  # pain must be filled in
-            return html.H5(
-                'Please fill in all data fields to continue :)', 
-                style={'text-align': 'center', 'color': 'red'}
-            )
+        if not all_items_exist(data):  # all values must be filled in
+            return fail_alert
 
         payload = json.dumps(data)
         sql_statement = f"""
@@ -145,9 +167,6 @@ def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse)
            VALUES ('{user_hash}', '{payload}', {unixtime})
            """
         sql.insert(sql_statement)
-        return html.H5(
-            'Got it - thanks so much!', 
-            style={'text-align': 'center', 'color': 'green'}
-        )
+        return success_alert
 
 
