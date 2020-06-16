@@ -28,7 +28,7 @@ pain_areas = [
 
 pain_level = dbc.FormGroup(
     [
-        dbc.Label("What Is Your Current Pain Level?", html_for="pain-slider"),
+        dbc.Label("What Is Your Current Body Pain Level?", html_for="pain-slider"),
         dcc.Slider(
             id="pain-slider", 
             min=0, 
