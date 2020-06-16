@@ -26,12 +26,16 @@ exercises = dbc.Card(
 videos = dbc.Card(
     dbc.CardBody([
         html.Div([
-            html.Video(id='feedback-video', className='embed-responsive-item'),
+            html.Video(id='feedback-video', className='embed-responsive-item', controls=True),
             html.Iframe(id='instructional-video', className='embed-responsive-item')
             ],
             className='embed-responsive embed-responsive-16by9'
         ),
-        html.P(id='percentage')
+        html.Br(),
+        html.H5(
+            id='percentage',
+            style={'text-align': 'center', 'color': 'green'}
+        )
     ])
 , color="light", outline=True)
 
