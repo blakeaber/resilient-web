@@ -14,6 +14,7 @@ from app import (
 
 
 pain_areas = [
+    'No Change',
     'Neck',
     'Shoulders',
     'Wrists',
@@ -30,7 +31,7 @@ pain_level = dbc.FormGroup(
         dbc.Label("What Is Your Current Pain Level?", html_for="pain-slider"),
         dcc.Slider(
             id="pain-slider", 
-            min=-1, 
+            min=0, 
             max=10, 
             step=1, 
             marks={
@@ -118,16 +119,22 @@ layout = dbc.Container([
                State('pain-increase-checklist', 'value'),
                State('pain-decrease-checklist', 'value')])
 def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse):
+    def all_items_exist(data):
+        has_pain_level = data['pain_level'] is not None
+        has_better = any(data['getting_better'])
+        has_worse = any(data['getting_worse'])
+        return has_pain_level and has_better and has_worse
+
     if n_clicks:
         unixtime = time.time()
         user_hash = user['user-hash']
         data = {
             "pain_level": pain_level,
-            "getting_better": getting_better,
-            "getting_worse": getting_worse
+            "getting_better": getting_better or [],
+            "getting_worse": getting_worse or []
         }
         
-        if (data['pain_level'] is None) or (data['pain_level'] < 0):  # pain must be filled in
+        if not all_items_exist(data):  # all values must be filled in
             return html.H5(
                 'Please fill in all data fields to continue :)', 
                 style={'text-align': 'center', 'color': 'red'}

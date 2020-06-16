@@ -131,16 +131,22 @@ def save_profile_to_sql(pathname, sex, height, weight, activity, age, experience
 def save_diary_to_sql(pain_level, getting_better, getting_worse, user, profile_complete):
     is_diary_complete = False
 
+    def all_items_exist(data):
+        has_pain_level = data['pain_level'] is not None
+        has_better = (data['getting_better'] is not None) and any(data['getting_better'])
+        has_worse = (data['getting_worse'] is not None) and any(data['getting_worse'])
+        return has_pain_level and has_better and has_worse
+
     if not profile_complete:
         return is_diary_complete
     else:
         data = {
             "pain_level": pain_level,
-            "getting_better": getting_better,
-            "getting_worse": getting_worse
+            "getting_better": getting_better or [],
+            "getting_worse": getting_worse or []
         }
 
-        if (data['pain_level'] is not None) and (data['pain_level'] >= 0):  # pain must be filled in
+        if all_items_exist(data):  # all values must be filled in
             unixtime = time.time()
             user_hash = user['user-hash']
 
