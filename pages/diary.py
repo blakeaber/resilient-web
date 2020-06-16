@@ -112,6 +112,30 @@ layout = dbc.Container([
 ])
 
 
+success_alert = dbc.Toast(
+    'Thanks for the info!',
+    id="pain-success-alert",
+    header="Got It",
+    is_open=True,
+    dismissable=True,
+    duration=4000,
+    icon="success",
+    style={"position": "fixed", "top": 100, "right": 10, "width": 350, "z-index": "999"}
+)
+
+
+fail_alert = dbc.Toast(
+    "Please fill in all data fields to continue :)",
+    id="pain-failure-alert",
+    header="There was a problem...",
+    is_open=True,
+    dismissable=True,
+    duration=4000,
+    icon="danger",
+    style={"position": "fixed", "top": 100, "right": 10, "width": 350, "z-index": "999"}
+)
+
+
 @app.callback(Output('diary-submit-status', 'children'),
               [Input('diary-submit-button', 'n_clicks')],
               [State('user-id', 'data'),
@@ -135,10 +159,7 @@ def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse)
         }
         
         if not all_items_exist(data):  # all values must be filled in
-            return html.H5(
-                'Please fill in all data fields to continue :)', 
-                style={'text-align': 'center', 'color': 'red'}
-            )
+            return fail_alert
 
         payload = json.dumps(data)
         sql_statement = f"""
@@ -146,9 +167,6 @@ def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse)
            VALUES ('{user_hash}', '{payload}', {unixtime})
            """
         sql.insert(sql_statement)
-        return html.H5(
-            'Got it - thanks so much!', 
-            style={'text-align': 'center', 'color': 'green'}
-        )
+        return success_alert
 
 

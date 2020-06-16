@@ -106,7 +106,7 @@ progress_alert = dbc.Toast(
     duration=4000,
     icon="success",
     style={"position": "fixed", "top": 10, "right": 10, "width": 350, "z-index": "999"}
-),
+)
 
 
 layout = dbc.Container([
