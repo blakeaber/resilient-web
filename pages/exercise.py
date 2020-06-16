@@ -101,12 +101,12 @@ def remind_to_record_pain(pathname, user):
 
         if not last_pain_record or (time.time() - last_pain_record > 86400):
             return dbc.Toast(
-                ["Care to share how you feel in the ",
-                html.A("pain diary?", href="/diary", className="alert-link")],
+                ["Care to share in the ",
+                dbc.Button("pain diary?", href="/diary", className="alert-link")],
                 id="pain-alert-reminder",
                 header="It's been a while...",
                 dismissable=True,
-                icon="info",
+                icon="warning",
                 style={"position": "fixed", "top": 100, "right": 10, "width": 350, "z-index": "999"}
             )
 
