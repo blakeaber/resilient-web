@@ -116,8 +116,6 @@ function clickStopButton(is_active, user_data, exercise_id) {
 					var request = bucket.putObject(params);
 					request.on('httpUploadProgress', function (progress) {
 						percentage.innerHTML = parseInt((progress.loaded * 100) / progress.total)+'%'; 
-						console.log("Uploaded :: " + parseInt((progress.loaded * 100) / progress.total)+'%');
-						// console.log(progress.loaded + " of " + progress.total + " bytes");
 					}).send(function(err, data){
 						percentage.innerHTML = "We've securely stored your results!";
 					});
