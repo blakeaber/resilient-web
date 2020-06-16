@@ -44,7 +44,57 @@ def create_process_steps_from_list(input_steps):
     ]
 
 
-welcome = html.P('Welcome!')
+welcome = dbc.Jumbotron(
+    [
+        html.H1("Welcome to Resilient AI", className="display-4"),
+        html.P(
+            "We're excited for your contribution to our platform, and "
+            "we're here to help you!", className="lead"),
+        html.Hr(className="my-2"),
+        html.H3('What To Expect'),
+        html.P(
+            'We\'ll ask you to read about the platform and answer some '
+            'preliminary questions about yourself. Once you do, we\'ll '
+            'ask you to perform 3 exercises for 5 days in a row. '
+            'Our expectation is that you\'ll help us succeed by '
+            'committing to 15-30mins of exercise, daily.'),
+        html.P(
+            'For each exercise, we will provide a detailed video explaining what to do. '
+            'The exercises should be approachable and should elicit a stretching sensation. '
+            'Our hope is that the videos are very clear. If they\'re not, '
+            'please tell us!'),
+        html.P(
+            'The goal of this engagement is to gather data for the `AI engine` '
+            'that enables real-time feedback. We will do this by capturing videos of you '
+            'exercising. We ask that you use either a laptop or tablet with a webcam. '),
+        dbc.Button("Ready to go?", href='/onboard?next=2', color="success", size='lg', block=True),
+        html.A(dbc.Button(
+            "Confused? Contact Blake", 
+            href='mailto: blake.aber@gmail.com', 
+            color="secondary", size='md', block=True))
+    ]
+)
+
+
+exercise_prep = dbc.Jumbotron(
+    [
+        html.H1("Great, all set!", className="display-4"),
+        html.P(
+            "We've got a simple program for you that focuses on "
+            "foundational movements", className="lead"),
+        html.Img(src="./assets/Wellness.jpg", style={'width': '100%'}),
+        html.Hr(className="my-2"),
+        html.H3('What You Need'),
+        html.P(
+            'Please wear athletic clothing and try to find ample floor space for stretching.'),
+        html.P(
+            'You\'ll need a couch or a chair to support your leg for one of the exercises.'),
+        html.P(
+            'Remember, you\'re just doing some stretching with friends and family, '
+            'and maybe you\'ll have fun!'),
+        dbc.Button("Ready to go?", href='/exercise', color="success", size='lg', block=True)
+    ]
+)
 
 
 progress_alert = dbc.Toast(
@@ -84,7 +134,6 @@ layout = dbc.Container([
                Output('progress-steps', 'value')],
               [Input('onboarding-steps', 'active_tab')])
 def display_page(active_tab):
-    print('ACTIVE TAB:', active_tab)
     if not active_tab or (active_tab == 'onboard-1'):
         return welcome, 10
     elif active_tab == 'onboard-2':
@@ -94,7 +143,7 @@ def display_page(active_tab):
     elif active_tab == 'onboard-4':
         return diary.onboard_layout, 62
     elif active_tab == 'onboard-5':
-        return welcome, 80
+        return exercise_prep, 80
     else:
         return html.P('This indicates an error has occured :(')
 
