@@ -74,8 +74,8 @@ def display_page(user, pathname):
 
 if __name__ == '__main__':
     app.run_server(
-#         host='0.0.0.0',
-        host='localhost',
+        host='0.0.0.0',
+#         host='localhost',
         port=5000,
         debug=True
     )
