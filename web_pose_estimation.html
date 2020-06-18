@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Document</title>
+		<style>
+			button {
+				margin: 0px 5px 0px 0px;
+				width: 100px;
+				cursor: pointer;
+			}
+			div {
+				position: relative;
+				margin-top: 30px;
+			}
+			video {
+				width: 48%;
+				position: absolute;
+				left: 0px;
+			}
+			canvas {
+				position: absolute;
+			}
+			canvas:first-child {
+				left: 0px;
+				display: none;
+			}
+			canvas:last-child {
+				z-index: 99;
+				left: 0px;
+			}
+		</style>
+	</head>
+	<body>
+		<div>
+			<button id="btn-start-recording">Start</button>
+			<button id="btn-stop-recording">Stop</button>
+		</div>
+		<div>
+			<video src="" autoplay="true" id="demo-video"></video>
+			<canvas id="demo-output"></canvas>
+			<canvas id="demo-outpoints"></canvas>
+		</div>
+		<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+		<script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+		<script>
+			var video = document.getElementsByTagName('video')[0];
+			var canvas = document.getElementsByTagName('canvas')[0];
+			var canvPoints = document.getElementsByTagName('canvas')[1];
+			var posenetTimer;
+			var recorder;
+			var videoWidth = 0;
+			var videoHeight = 0;
+			video.addEventListener('loadeddata', function(event){
+				videoWidth = event.target.offsetWidth;
+				videoHeight = event.target.offsetHeight;
+				defaultMobileNetInputResolution = videoWidth;
+				canvas.width = videoWidth;
+				canvas.height = videoHeight;
+				canvPoints.width = videoWidth;
+				canvPoints.height = videoHeight;
+			});
+
+			// When the user clicks on start video recording
+			document.getElementById('btn-start-recording').addEventListener("click", function(){
+				// Disable start recording button
+				this.disabled = true;
+				// Request access to the media devices
+				navigator.mediaDevices.getUserMedia({
+					audio: true, 
+					video: true
+				}).then(function(stream) {
+					// Display a live preview on the video element of the page
+					setSrcObject(stream, video);
+					console.log(stream)
+					// Start to display the preview on the video element
+					// and mute the video to disable the echo issue !
+					video.play();
+					video.muted = true;
+					recorder = new RecordRTCPromisesHandler(stream, {
+						mimeType: 'video/mp4'
+					});
+					// Start recording the video
+					recorder.startRecording().then(function() {
+						console.info('Recording video ...');
+					}).catch(function(error) {
+						console.error('Cannot start video recording: ', error);
+					});
+					// release stream on stopRecording
+					recorder.stream = stream;
+					// Enable stop recording button
+					document.getElementById('btn-stop-recording').disabled = false;
+					posenet.load({
+						architecture: defaultArchitecture,
+						outputStride: defaultMobileNetStride,
+						inputResolution: defaultMobileNetInputResolution,
+						multiplier: defaultMobileNetMultiplier,
+						quantBytes: defaultQuantBytes
+					}).then(function(model){
+						var ratio = video.videoWidth / video.videoHeight;
+						var w = video.videoWidth - 100;
+						var h = parseInt(w / ratio, 10);
+						var ctx = canvas.getContext('2d');
+						posenet.load({
+							architecture: defaultArchitecture,
+							outputStride: defaultMobileNetStride,
+							inputResolution: defaultMobileNetInputResolution,
+							multiplier: defaultMobileNetMultiplier,
+							quantBytes: defaultQuantBytes
+						}).then(function(net){
+							var ctxp = canvPoints.getContext('2d');
+							posenetTimer = setInterval(function(){
+								ctx.clearRect(0, 0, canvas.width, canvas.height);
+								ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+								ctxp.drawImage(video, 0, 0, canvas.width, canvas.height);
+								net.estimateSinglePose(ctx.getImageData(0, 0, videoWidth, videoHeight), { flipHorizontal: false }).then(function(pose){
+									let poses = [pose]
+									poses.forEach(({score, keypoints}) => {
+										if (score >= minPoseConfidence) {
+											drawKeypoints(keypoints, minPoseConfidence, ctxp);
+											drawSkeleton(keypoints, minPoseConfidence, ctxp);
+										}
+									});
+								},function(err){
+									console.error(err);
+								});
+							}, 1000);
+						},function(err){
+							console.error(err);
+						});
+
+					}, function(err){
+						console.log("Can't load model");
+						console.error(err);
+					});
+					// detectPoseInFrame(video, net);
+				}).catch(function(error) {
+					console.error("Cannot access media devices: ", error);
+				});
+			}, false);
+			// When the user clicks on Stop video recording
+			document.getElementById('btn-stop-recording').addEventListener("click", function(){
+				this.disabled = true;
+				document.getElementById('btn-start-recording').disabled = false;
+				recorder.stopRecording().then(function(){
+					var Blob = recorder.getBlob();
+					Blob.then(function(data){
+						// When and if the promise resolving successful
+						clearInterval(posenetTimer);
+						var reader = new FileReader();
+						reader.onload = function() {
+							var random = Math.random();
+							
+							// for DYNAMIC mime type based on blob
+							// var objKey = 'video/user/web/'+random+'.'+data.type.split('/')[1];
+							
+							// otherwise...
+							var objKey = 'video/user/web/'+random+'.webm';
+							
+							var params = {
+								Key: objKey,
+								ContentType: data.type,
+								Body: reader.result,
+								ACL: 'public-read'
+							};
+							var request = bucket.putObject(params);
+							request.on('httpUploadProgress', function (progress) {
+								percentage.innerHTML = parseInt((progress.loaded * 100) / progress.total)+'%'; 
+								console.log("Uploaded :: " + parseInt((progress.loaded * 100) / progress.total)+'%');
+								// console.log(progress.loaded + " of " + progress.total + " bytes");
+							}).send(function(err, data){
+								percentage.innerHTML = "File has been uploaded successfully.";
+							});
+						};
+						reader.readAsArrayBuffer(data);
+					}).catch(function(err){
+						console.error(err);
+					});
+				});
+				recorder.stream.stop();
+				video.pause();
+			}, false);
+
+
+
+
+
+
+
+
+
+			const defaultFrameRate = 5;
+			const defaultFrameCacheSize = 10;
+			const minPoseConfidence = 0.1;
+
+			const defaultInputVideoId = 'demo-video';
+			const defaultOutputCanvasId = 'demo-output';
+			const defaultPoseStorageId = 'cachePoses';
+
+			const defaultAlgorithm = 'single-pose'
+			const defaultArchitecture = 'MobileNetV1'
+
+			const defaultQuantBytes = 2;
+			const defaultMobileNetMultiplier = 0.75;
+			const defaultMobileNetStride = 16;
+			var defaultMobileNetInputResolution = 640;
+
+
+			function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
+			  for (let i = 0; i < keypoints.length; i++) {
+				const keypoint = keypoints[i];
+				if (keypoint.score < minConfidence) {
+				  continue;
+				}
+				const {y, x} = keypoint.position;
+				drawPoint(ctx, y * scale, x * scale, 3, 'red');
+			  }
+			}
+			function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
+			  const adjacentKeyPoints =
+				  posenet.getAdjacentKeyPoints(keypoints, minConfidence);
+
+			  function toTuple({y, x}) {
+				return [y, x];
+			  }
+
+			  adjacentKeyPoints.forEach((keypoints) => {
+				drawSegment(
+					toTuple(keypoints[0].position), toTuple(keypoints[1].position), 'aqua',
+					scale, ctx);
+			  });
+			}
+			function drawPoint(ctx, y, x, r, color) {
+				ctx.beginPath();
+				ctx.arc(x, y, r, 0, 2 * Math.PI);
+				ctx.fillStyle = color;
+				ctx.fill();
+			}
+			function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
+				ctx.beginPath();
+				ctx.moveTo(ax * scale, ay * scale);
+				ctx.lineTo(bx * scale, by * scale);
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = color;
+				ctx.stroke();
+			}
+
+		</script>
+	</body>
+</html>
