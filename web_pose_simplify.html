@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Document</title>
+		<style>
+			button {
+				margin: 0px 5px 0px 0px;
+				width: 100px;
+				cursor: pointer;
+			}
+			div {
+				position: relative;
+				margin-top: 30px;
+			}
+			video {
+				width: 48%;
+				position: absolute;
+				left: 0px;
+			}
+			canvas {
+				position: absolute;
+			}
+			canvas:first-child {
+				left: 0px;
+				display: none;
+			}
+			canvas:last-child {
+				z-index: 99;
+				left: 0px;
+			}
+		</style>
+	</head>
+	<body>
+		<div>
+			<button id="btn-start-recording">Start</button>
+			<button id="btn-stop-recording">Stop</button>
+		</div>
+		<div>
+			<video src="" autoplay="true" id="demo-video" width=400 height=300></video>
+			<canvas id="demo-output" width=400 height=300></canvas>
+			<div id="poses"></canvas>
+		</div>
+		<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+		<script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+		<script>
+			var video = document.getElementById('demo-video');
+			var canvas = document.getElementById('demo-output');
+			var ctx = canvas.getContext('2d');
+
+			var posenetTimer;
+			var recorder;
+			var videoWidth = 0;
+			var videoHeight = 0;
+
+			video.addEventListener('loadeddata', function(event){
+				videoWidth = event.target.offsetWidth;
+				videoHeight = event.target.offsetHeight;
+				canvas.width = videoWidth;
+				canvas.height = videoHeight;
+			});
+
+			// When the user clicks on start video recording
+			document.getElementById('btn-start-recording').addEventListener("click", function(){
+
+				this.disabled = true;
+
+				navigator.mediaDevices.getUserMedia({
+					audio: true, 
+					video: true
+				}).then(function(stream) {
+					setSrcObject(stream, video);
+// 					video.play();
+// 					video.muted = true;
+
+					recorder = new RecordRTCPromisesHandler(stream, {
+						mimeType: 'video/mp4'
+					});
+					recorder.startRecording().then(function() {
+						console.info('Recording video ...');
+					}).catch(function(error) {
+						console.error('Cannot start video recording: ', error);
+					});
+					recorder.stream = stream;
+
+					posenet.load({
+						architecture: defaultArchitecture,
+						outputStride: defaultMobileNetStride,
+						inputResolution: defaultMobileNetInputResolution,
+						multiplier: defaultMobileNetMultiplier,
+						quantBytes: defaultQuantBytes
+					}).then(function(model){
+						posenetTimer = setInterval(function(){
+							ctx.clearRect(0, 0, canvas.width, canvas.height);
+							ctx.save();
+
+							ctx.scale(-1, 1);
+							ctx.translate(-canvas.width, 0);
+							ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+							ctx.restore();
+
+							model.estimateSinglePose(
+								ctx.getImageData(0, 0, canvas.width, canvas.height), 
+								{flipHorizontal: false}
+							).then(function(pose){
+						
+								addLatestPose(pose);
+								console.log(JSON.parse(sessionStorage.getItem(defaultPoseStorageId)));
+						
+								let poses = [pose]
+								poses.forEach(({score, keypoints}) => {
+									if (score >= minPoseConfidence) {
+										drawKeypoints(keypoints, minPoseConfidence, ctx);
+										drawSkeleton(keypoints, minPoseConfidence, ctx);
+									}
+								});
+							},function(err){
+								console.error(err);
+							});
+						}, 1000 / defaultFrameRate);
+
+					}, function(err){
+						console.log("Can't load model");
+						console.error(err);
+					})
+				}).catch(function(error) {
+					console.error("Cannot access media devices: ", error);
+				});
+			}, false);
+
+            // When the user clicks on stop video recording
+			document.getElementById('btn-stop-recording').addEventListener("click", function(){
+				this.disabled = true;
+				document.getElementById('btn-start-recording').disabled = false;
+				recorder.stopRecording()
+				recorder.stream.stop();
+// 				video.pause();
+				clearInterval(posenetTimer);
+			}, false);
+
+
+
+
+			const defaultFrameRate = 5;
+			const defaultFrameCacheSize = 5;
+			const minPoseConfidence = 0.1;
+
+			const defaultInputVideoId = 'demo-video';
+			const defaultOutputCanvasId = 'demo-output';
+			const defaultPoseStorageId = 'cachePoses';
+
+			const defaultAlgorithm = 'single-pose'
+			const defaultArchitecture = 'MobileNetV1'
+
+			const defaultQuantBytes = 2;
+			const defaultMobileNetMultiplier = 1.0;
+			const defaultMobileNetStride = 32;
+			const defaultMobileNetInputResolution = { width: 400, height: 300 };
+
+			sessionStorage.setItem(defaultPoseStorageId, JSON.stringify([]));
+
+
+			function addLatestPose(x) {
+			  let cachePoses = JSON.parse(sessionStorage.getItem(defaultPoseStorageId));
+			  cachePoses.push(x);
+
+			  let latestCachePoses = cachePoses.slice(-defaultFrameCacheSize);
+			  sessionStorage.setItem(defaultPoseStorageId, JSON.stringify(latestCachePoses));
+			}
+
+
+			function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
+			  for (let i = 0; i < keypoints.length; i++) {
+				const keypoint = keypoints[i];
+				if (keypoint.score < minConfidence) {
+				  continue;
+				}
+				const {y, x} = keypoint.position;
+				drawPoint(ctx, y * scale, x * scale, 3, 'red');
+			  }
+			}
+			function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
+			  const adjacentKeyPoints =
+				  posenet.getAdjacentKeyPoints(keypoints, minConfidence);
+
+			  function toTuple({y, x}) {
+				return [y, x];
+			  }
+
+			  adjacentKeyPoints.forEach((keypoints) => {
+				drawSegment(
+					toTuple(keypoints[0].position), toTuple(keypoints[1].position), 'aqua',
+					scale, ctx);
+			  });
+			}
+			function drawPoint(ctx, y, x, r, color) {
+				ctx.beginPath();
+				ctx.arc(x, y, r, 0, 2 * Math.PI);
+				ctx.fillStyle = color;
+				ctx.fill();
+			}
+			function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
+				ctx.beginPath();
+				ctx.moveTo(ax * scale, ay * scale);
+				ctx.lineTo(bx * scale, by * scale);
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = color;
+				ctx.stroke();
+			}
+
+		</script>
+	</body>
+</html>
