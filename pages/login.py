@@ -74,8 +74,18 @@ def verify_login(pathname, email, password):
               [State('login_email', 'value'),
                State('login_password', 'value')])
 def verify_login(n_clicks, email, password):
+
+    def profile_exists(user_hash):
+		sql_statement = f"""
+		   SELECT COUNT(profile_id) FROM profiles
+		   WHERE user_hash = '{user_hash}'
+		   """
+		result = sql.select(sql_statement)[0][0]
+		return True if result else False
+
     if n_clicks:
-        return {'email': email, 'user-hash': password}
+        has_profile = profile_exists(password)
+        return {'email': email, 'user-hash': password, 'user-profile-exists': has_profile}
     else:
         return {'email': None, 'user-hash': None}
 

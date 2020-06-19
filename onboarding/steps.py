@@ -97,30 +97,6 @@ exercise_prep = dbc.Jumbotron(
 )
 
 
-progress_alert = dbc.Toast(
-    "Please continue to the next step :)",
-    id="progress-alert",
-    header="Thanks for the info!",
-    is_open=True,
-    dismissable=True,
-    duration=4000,
-    icon="success",
-    style={"position": "fixed", "top": 10, "right": 10, "width": 350, "z-index": "999"}
-)
-
-
-missing_data_alert = dbc.Toast(
-    "Please fill in all fields to continue :(",
-    id="missing-data-alert",
-    header="Missing data...",
-    is_open=True,
-    dismissable=True,
-    duration=4000,
-    icon="danger",
-    style={"position": "fixed", "top": 10, "right": 10, "width": 350, "z-index": "999"}
-)
-
-
 layout = dbc.Container([
     html.Br(),
     dcc.Store(id='profile-complete', storage_type='memory'),
@@ -151,56 +127,13 @@ def display_page(active_tab):
     elif active_tab == 'onboard-2':
         return howitworks.layout, 27
     elif active_tab == 'onboard-3':
-        return profile.onboard_layout, 43
+        return profile.layout, 43
     elif active_tab == 'onboard-4':
-        return diary.onboard_layout, 62
+        return diary.layout, 62
     elif active_tab == 'onboard-5':
         return exercise_prep, 80
     else:
         return html.P('This indicates an error has occured :(')
-
-
-@app.callback([Output('profile-complete', 'data'),
-               Output('profile-upload-alert', 'children')],
-              [Input('url', 'pathname'),
-               Input('sex-radio', 'value'),
-               Input('height-slider', 'value'),
-               Input('weight-slider', 'value'),
-               Input('activity-slider', 'value'),
-               Input('age-slider', 'value'),
-               Input('personal-experience-text', 'value'),
-               Input('previous-pt-radio', 'value')],
-              [State('user-id', 'data')])
-def save_profile_to_sql(pathname, sex, height, weight, activity, age, experience, pt, user):
-    is_profile_complete = False
-    alert_to_post = None
-
-    data = {
-        "sex": sex,
-        "height": height,
-        "weight": weight,
-        "activity": activity,
-        "age": age,
-        "experience": experience,
-        "previous_pt": pt
-    }
-
-    if user and all(data.values()):  # all values must be filled in
-        unixtime = time.time()
-        user_hash = user['user-hash']
-        data['experience'] = data['experience'].replace("'", "''")            
-
-        payload = json.dumps(data)
-        sql_statement = f"""
-           INSERT INTO profiles (user_hash, profile, unixtime) 
-           VALUES ('{user_hash}', '{payload}', {unixtime})
-           """
-        sql.insert(sql_statement)
-
-        is_profile_complete = True
-        alert_to_post = progress_alert
-    
-    return is_profile_complete, alert_to_post
 
 
 @app.callback([Output('diary-complete', 'data'),

@@ -88,20 +88,16 @@ experience = dbc.Card([
 ], color="light", outline=True)
 
 
-
-onboard_layout = dbc.Container([
-    dbc.Row([
-        dbc.Col(experience, width=12),
-    ], justify="center"),
-    dbc.Row([
-        dbc.Col(pain_increase_checklist, width=6),
-        dbc.Col(pain_decrease_checklist, width=6)
-    ], justify="center")
-])
-
-
 layout = dbc.Container([
-    onboard_layout,
+    dbc.Container([
+		dbc.Row([
+			dbc.Col(experience, width=12),
+		], justify="center"),
+		dbc.Row([
+			dbc.Col(pain_increase_checklist, width=6),
+			dbc.Col(pain_decrease_checklist, width=6)
+		], justify="center")
+	]),
     dbc.Row([    
         dbc.Col([
             html.Div(id='diary-submit-status'),
@@ -144,7 +140,7 @@ fail_alert = dbc.Toast(
                State('pain-decrease-checklist', 'value')])
 def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse):
     def all_items_exist(data):
-        has_pain_level = data['pain_level'] is not None
+        has_pain_level = data['pain_level']
         has_better = any(data['getting_better'])
         has_worse = any(data['getting_worse'])
         return has_pain_level and has_better and has_worse
@@ -153,7 +149,7 @@ def save_diary_to_sql(n_clicks, user, pain_level, getting_better, getting_worse)
         unixtime = time.time()
         user_hash = user['user-hash']
         data = {
-            "pain_level": pain_level,
+            "pain_level": pain_level or 0,
             "getting_better": getting_better or [],
             "getting_worse": getting_worse or []
         }

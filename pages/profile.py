@@ -184,22 +184,18 @@ user_confirmation = dbc.Card([
 ], color="light", outline=True)
 
 
-onboard_layout = dbc.Container([
-    dbc.Row([
-        dbc.Col([
-            demographics
-        ], width=9), 
-        dbc.Col(user_confirmation, width=3)
-    ], justify="center"),
-    dbc.Row([
-        dbc.Col(experience, width=12)
-    ], justify="center")
-])
-
-
-
 layout = dbc.Container([
-    onboard_layout,
+    dbc.Container([
+		dbc.Row([
+			dbc.Col([
+				demographics
+			], width=9), 
+			dbc.Col(user_confirmation, width=3)
+		], justify="center"),
+		dbc.Row([
+			dbc.Col(experience, width=12)
+		], justify="center")
+	]),
     dbc.Row([
         dbc.Col([
             html.Div(id='profile-submit-status'),
@@ -209,6 +205,30 @@ layout = dbc.Container([
         )
     ], justify="center")
 ])
+
+
+success_alert = dbc.Toast(
+    'Thanks for the info!',
+    id="pain-success-alert",
+    header="Got It",
+    is_open=True,
+    dismissable=True,
+    duration=4000,
+    icon="success",
+    style={"position": "fixed", "top": 100, "right": 10, "width": 350, "z-index": "999"}
+)
+
+
+fail_alert = dbc.Toast(
+    "Please fill in all data fields to continue :)",
+    id="pain-failure-alert",
+    header="There was a problem...",
+    is_open=True,
+    dismissable=True,
+    duration=4000,
+    icon="danger",
+    style={"position": "fixed", "top": 100, "right": 10, "width": 350, "z-index": "999"}
+)
 
 
 @app.callback([Output('sex-display', 'children'),
@@ -221,7 +241,7 @@ layout = dbc.Container([
                Input('weight-slider', 'value'),
                Input('activity-slider', 'value'),
                Input('age-slider', 'value')])
-def disable_tabs_while_recording(sex, height, weight, activity, age):
+def display_selected_profile_data(sex, height, weight, activity, age):
     display_height = height
     if height:
 	    height_remainder = height % 12
@@ -240,7 +260,7 @@ def disable_tabs_while_recording(sex, height, weight, activity, age):
                Output('previous-pt-radio', 'value')],
               [Input('url', 'pathname')],
               [State('user-id', 'data')])
-def display_page(pathname, user):
+def store_selected_profile_data(pathname, user):
     if user.get('user-hash'):
         user_hash = user['user-hash']
         data = sql.select(f"""
@@ -260,4 +280,46 @@ def display_page(pathname, user):
             )
 
     return [None, 54, 50, None, None, None, None]
+
+
+@app.callback(Output('profile-submit-status', 'children'),
+              [Input('profile-submit-button', 'n_clicks')],
+              [State('sex-radio', 'value'),
+               State('height-slider', 'value'),
+               State('weight-slider', 'value'),
+               State('activity-slider', 'value'),
+               State('age-slider', 'value'),
+               State('personal-experience-text', 'value'),
+               State('previous-pt-radio', 'value'),
+               State('user-id', 'data')])
+def save_profile_to_sql(n_clicks, sex, height, weight, activity, age, experience, pt, user):
+    def all_items_exist(data):
+        return all(data.values())
+
+    data = {
+        "sex": sex,
+        "height": height,
+        "weight": weight,
+        "activity": activity,
+        "age": age,
+        "experience": experience,
+        "previous_pt": pt
+    }
+
+    if n_clicks and user and all_items_exist(data):  # all values must be filled in
+        unixtime = time.time()
+        user_hash = user['user-hash']
+        data['experience'] = data['experience'].replace("'", "''")            
+
+        payload = json.dumps(data)
+        sql_statement = f"""
+           INSERT INTO profiles (user_hash, profile, unixtime) 
+           VALUES ('{user_hash}', '{payload}', {unixtime})
+           """
+        sql.insert(sql_statement)
+        return success_alert
+    elif n_clicks and user:
+        return fail_alert
+    else:
+        pass
 

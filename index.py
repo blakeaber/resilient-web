@@ -73,8 +73,8 @@ def display_page(pathname, user):
 
     if not is_valid_user(user):
         return login.layout
-    elif not user_has_profile(user):
-        return steps.layout        
+    elif not user_has_profile(user) or (pathname == '/onboard'):
+        return steps.layout
     elif pathname == '/':
         return exercise.layout
     elif pathname == '/exercise':
