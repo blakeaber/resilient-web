@@ -109,6 +109,18 @@ progress_alert = dbc.Toast(
 )
 
 
+missing_data_alert = dbc.Toast(
+    "Please fill in all fields to continue :(",
+    id="missing-data-alert",
+    header="Missing data...",
+    is_open=True,
+    dismissable=True,
+    duration=4000,
+    icon="danger",
+    style={"position": "fixed", "top": 10, "right": 10, "width": 350, "z-index": "999"}
+)
+
+
 layout = dbc.Container([
     html.Br(),
     dcc.Store(id='profile-complete', storage_type='memory'),
