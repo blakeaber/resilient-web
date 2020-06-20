@@ -67,7 +67,7 @@ welcome = dbc.Jumbotron(
             'The goal of this engagement is to gather data for the `AI engine` '
             'that enables real-time feedback. We will do this by capturing videos of you '
             'exercising. We ask that you use either a laptop or tablet with a webcam. '),
-        dbc.Button("Ready to go?", href='/onboard?next=2', color="success", size='lg', block=True),
+        dbc.Button("Ready to go?", href='/?next=2', color="success", size='lg', block=True),
         html.A(dbc.Button(
             "Confused? Contact Blake", 
             href='mailto: blake.aber@gmail.com', 
@@ -106,13 +106,13 @@ profile_with_button = html.Div([
 
 diary_with_button = html.Div([
     diary.onboard_layout,
-     dbc.Button("Submit", id='diary-submit-button', href='/onboard?next=5', color="success", size='lg', block=True)
+     dbc.Button("Submit", id='diary-submit-button', color="success", size='lg', block=True)
     
 ])
 
 
 progress_alert = dbc.Toast(
-    "Please continue to the next step :)",
+    "Almost there...",
     id="progress-alert",
     header="Thanks for the info!",
     is_open=True,
@@ -124,7 +124,7 @@ progress_alert = dbc.Toast(
 
 
 missing_data_alert = dbc.Toast(
-    "Please fill in all fields to continue :(",
+    "Please fill in all fields to continue :)",
     id="missing-data-alert",
     header="Missing data...",
     is_open=True,
@@ -184,9 +184,6 @@ def display_page(active_tab):
                Input('previous-pt-radio', 'value')],
                [State('url', 'pathname')])
 def validate_profile_data(sex, height, weight, activity, age, experience, pt, pathname):
-    is_valid = False
-    on_submit_href = None
-
     data = {
         "sex": sex,
         "height": height,
@@ -194,23 +191,22 @@ def validate_profile_data(sex, height, weight, activity, age, experience, pt, pa
         "activity": activity,
         "age": age,
         "experience": experience,
-        "previous_pt": pt,
-        "is_valid": is_valid,
-        "href": on_submit_href
+        "previous_pt": pt
     }
 
     if all(data.values()):  # all values must be filled in
         data['is_valid'] = True
         data['experience'] = data['experience'].replace("'", "''")
+    else:
+        data['is_valid'] = False
 
-    if data['is_valid'] and (pathname == '/onboard'):
-        data['href'] = '/onboard?next=4'
+    if data['is_valid']:
+        data['href'] = '/?next=4'
+    else:
+        data['href'] = None
 
+    print(data)
     return data
-
-
-# TODO: The function above determines if the data is valid; 
-# TODO: the one below reports on it, redirects and saves to db
 
 
 @app.callback(Output('profile-upload-alert', 'children'),
@@ -219,7 +215,8 @@ def validate_profile_data(sex, height, weight, activity, age, experience, pt, pa
                State('profile-data', 'data')])
 def save_profile_data_to_sql(n_clicks, user, data):
 
-    if n_clicks and data['is_valid']:
+    alert_to_post = None
+    if n_clicks and data and data['is_valid']:
         unixtime = time.time()
         user_hash = user['user-hash']
         
@@ -242,22 +239,19 @@ def save_profile_data_to_sql(n_clicks, user, data):
     return alert_to_post
 
 
-@app.callback([Output('diary-complete', 'data'),
-               Output('diary-upload-alert', 'children')],
-              [Input('diary-submit-button', 'n_clicks')],
-              [State('pain-slider', 'value'),
-               State('pain-increase-checklist', 'value'),
-               State('pain-decrease-checklist', 'value'),
-               State('user-id', 'data')])
-def save_diary_to_sql(n_clicks, pain_level, getting_better, getting_worse, user):
-    is_diary_complete = False
-    alert_to_post = None
-
+@app.callback(Output('diary-data', 'data'),
+              [Input('pain-slider', 'value'),
+               Input('pain-increase-checklist', 'value'),
+               Input('pain-decrease-checklist', 'value')],
+               [State('user-id', 'data')])
+def validate_diary_data(pain_level, getting_better, getting_worse, user):
     def all_items_exist(data):
         has_pain_level = data['pain_level'] is not None
         has_better = (data['getting_better'] is not None) and any(data['getting_better'])
         has_worse = (data['getting_worse'] is not None) and any(data['getting_worse'])
         return has_pain_level and has_better and has_worse
+
+    pain_level = pain_level or 0
 
     data = {
         "pain_level": pain_level,
@@ -265,9 +259,32 @@ def save_diary_to_sql(n_clicks, pain_level, getting_better, getting_worse, user)
         "getting_worse": getting_worse or []
     }
 
-    if n_clicks and all_items_exist(data):
+    if all_items_exist(data):
+        data['is_valid'] = True
+    else:
+        data['is_valid'] = False
+
+    if data['is_valid']:
+        data['href'] = '/?next=5'
+    else:
+        data['href'] = None
+
+    return data
+
+
+@app.callback(Output('diary-upload-alert', 'children'),
+              [Input('diary-submit-button', 'n_clicks')],
+              [State('user-id', 'data'),
+               State('diary-data', 'data')])
+def save_diary_data_to_sql(n_clicks, user, data):
+
+    alert_to_post = None
+    if n_clicks and data['is_valid']:
         unixtime = time.time()
         user_hash = user['user-hash']
+        
+        data.pop('is_valid')
+        data.pop('href')
 
         payload = json.dumps(data)
         sql_statement = f"""
@@ -276,37 +293,41 @@ def save_diary_to_sql(n_clicks, pain_level, getting_better, getting_worse, user)
            """
         sql.insert(sql_statement)
 
-        is_diary_complete = True
         alert_to_post = progress_alert
     elif n_clicks:
         alert_to_post = missing_data_alert
     else:
         pass
     
-    return is_diary_complete, alert_to_post
+    return alert_to_post
 
 
 @app.callback([Output('onboard-tab-4', 'disabled'),
-               Output('onboard-tab-5', 'disabled'),
-               Output('profile-submit-button', 'href'),
+               Output('profile-submit-button', 'href')],
+              [Input('url', 'pathname'),
+               Input('profile-data', 'data')])
+def onboard_profile_progression_flag(pathname, profile_data):
+    disable_on_missing_profile = not profile_data['is_valid']
+    profile_next_step = profile_data['href']    
+    return disable_on_missing_profile, profile_next_step
+
+
+@app.callback([Output('onboard-tab-5', 'disabled'),
                Output('diary-submit-button', 'href')],
               [Input('url', 'pathname'),
-               Input('profile-complete', 'data'),
-               Input('diary-complete', 'data')])
-def onboard_data_progression_flags(pathname, profile_complete, diary_complete):
-    disable_on_missing_profile = not profile_complete
-    disable_on_missing_diary = not diary_complete
-
-	if profile_complete:
-        
-    return not profile_complete, not diary_complete
+               Input('diary-data', 'data')])
+def onboard_diary_progression_flag(pathname, diary_data):
+    disable_on_missing_diary = not diary_data['is_valid']
+    diary_next_step = diary_data['href']
+    return disable_on_missing_diary, diary_next_step
 
 
 @app.callback(Output('onboarding-steps', 'active_tab'),
               [Input('url', 'href')],
-              [State('url', 'pathname')])
-def skip_to_tab_from_intro(href, pathname):
-    if pathname.startswith('/onboard'):
+              [State('url', 'pathname'),
+               State('url', 'search')])
+def skip_to_tab_from_intro(href, pathname, search):
+    if 'next' in search:
         next_tab = utils.parse_url_parameters(href, param='next')
         if next_tab:
             return f'onboard-{next_tab}'
