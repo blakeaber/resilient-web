@@ -76,11 +76,11 @@ call_to_action = dbc.Jumbotron(
             "will provide AI-assisted, real-time feedback",
             className="lead"
         ),
-        dbc.Button("Try It Out", href='/onboard?next=3', color="success", size='lg', block=True),
+        dbc.Button("Try It Out", href='/?next=3', color="success", size='lg', block=True),
     ]
 )
 
-final_chance = dbc.Button("Get Started", href='/onboard?next=3', color="danger", size='lg', block=True)
+final_chance = dbc.Button("Get Started", href='/?next=3', color="danger", size='lg', block=True)
 
 featurettes = dbc.Container([
     dbc.Row([

@@ -12,7 +12,8 @@ from app import (
     MATCH,
     ALL,
     ClientsideFunction,
-    server
+    server,
+    sql
 )
 from pages import login, howitworks, profile, diary, exercise, utils
 from onboarding import steps
@@ -22,7 +23,8 @@ navbar = dbc.NavbarSimple(
     id='nav-bar-id',
     children=[
         dbc.NavLink("Exercises", href="/exercise"),
-        dbc.NavLink("Pain Diary", href="/diary")
+        dbc.NavLink("Pain Diary", href="/diary"),
+        dbc.NavLink("Profile", href="/profile")
     ],
     brand="Resilient.ai",
     brand_href="/",
@@ -43,16 +45,38 @@ app.layout = html.Div([
 ])
 
 
+def is_valid_user(user):
+    if user and user.get('email'):
+        return True
+    return False
+
+def user_has_profile(user):
+    if not is_valid_user(user):
+        return False
+
+    user_hash = user.get('user-hash')
+    sql_statement = f"""
+       SELECT COUNT(profile_id) FROM profiles
+       WHERE user_hash = '{user_hash}'
+       """
+    result = sql.select(sql_statement)[0][0]
+    if result:
+        return True
+    
+    return False
+
+
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname'),
                Input('user-id', 'data')])
 def display_page(pathname, user):
-    if not user or not user.get('email'):
+
+    if not is_valid_user(user):
         return login.layout
-    elif user and (pathname == '/'):
+    elif not user_has_profile(user):
+        return steps.layout        
+    elif pathname == '/':
         return exercise.layout
-    elif pathname == '/onboard':
-        return steps.layout
     elif pathname == '/exercise':
         return exercise.layout
     elif pathname == '/diary':
@@ -65,8 +89,7 @@ def display_page(pathname, user):
               [Input('user-id', 'data'),
                Input('url', 'pathname')])
 def display_page(user, pathname):
-    is_onboarding = (pathname == '/onboard')
-    if not user or not user.get('email') or is_onboarding:
+    if not is_valid_user(user) or not user_has_profile(user):
         return {'display': 'none'}
     else:
         return {'display': 'block'}
@@ -75,7 +98,6 @@ def display_page(user, pathname):
 if __name__ == '__main__':
     app.run_server(
         host='0.0.0.0',
-#         host='localhost',
         port=5000,
         debug=True
     )
