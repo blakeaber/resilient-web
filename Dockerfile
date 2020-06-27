@@ -9,8 +9,8 @@ WORKDIR /resilientai
 EXPOSE 5000
 
 ENV RDS_USER blake
-ENV RDS_PASS ***REMOVED***
-ENV RDS_ENDPOINT ***REMOVED***
+ENV RDS_PASS !?ba94!:fx7
+ENV RDS_ENDPOINT resilient-ai-db-dev.cpyof9gq0ppq.us-east-1.rds.amazonaws.com
 ENV RDS_PORT 5432
 
 # https://pythonspeed.com/articles/gunicorn-in-docker/

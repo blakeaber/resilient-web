@@ -81,6 +81,8 @@ def display_page(pathname, user):
         return exercise.layout
     elif pathname == '/diary':
         return diary.layout
+    elif pathname == '/profile':
+        return profile.layout
     else:
         return '404'
 
